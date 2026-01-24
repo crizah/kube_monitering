@@ -44,3 +44,6 @@ func VerifyPassword(username string, password string) (*HashedPass, error) {
 	return hashedPass, err
 
 }
+
+
+

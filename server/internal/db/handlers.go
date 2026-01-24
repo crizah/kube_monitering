@@ -60,3 +60,24 @@ func (s *DBserver) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 }
+
+
+func (s *DBserver) LoginHandler(w http.ResponseWriter, r *http.Request){
+	// user sends username and password
+
+	origin := r.Header.Get("Origin")
+	server.EnableCors(w, r, origin)
+
+	var res struct{
+		Username string `json:"username"`
+
+		Password string `json:"password"`
+	}
+
+	json.NewDecoder(r.Body).Decode(&res)
+
+	// verify password
+	
+
+
+}
