@@ -2,9 +2,11 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -14,36 +16,61 @@ var allowedOrigins = map[string]bool{
 }
 
 func EnableCors(w http.ResponseWriter, r *http.Request, origin string) {
-	w.Header().Set("Access-Control_Allow-Origin", origin)
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OOPTIONS")
+	if allowedOrigins[origin] {
+		w.Header().Set("Access-Control-Allow-Origin", origin)
+
+	}
+
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-credentials", "true")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusNoContent)
 		return
-
 	}
 }
 
-func OverviewHandler(w http.ResponseWriter, r *http.Request) {
-	// get request
+func (s *Server) OverviewHandler(w http.ResponseWriter, r *http.Request) {
+	// get
+	origin := r.Header.Get("Origin")
+	EnableCors(w, r, origin)
 
-	// give the overview
-	// number of nodes running
-	// number of pods running
-	// services running
-	// cpu usage
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 
-	// memory usage
+	session, err := s.Store.Get(r, "k8s-config-session")
+	if err != nil {
+		http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	restConfig := session.Values["config"].(*rest.Config)
+
+	overview, err := GetOverview(restConfig)
+	fmt.Printf("total nodes %d", overview.Nodes.TotalNodes)
+	if err != nil {
+		http.Error(w, "error getting whatever it is that u wanted"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"overview": overview,
+	})
 
 }
 
-func ConfigHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) ConfigHandler(w http.ResponseWriter, r *http.Request) {
 	// gets the ~/.kube/config
 	origin := r.Header.Get("Origin")
 	EnableCors(w, r, origin)
+
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 
 	// user can upload ~/.kube/config file or paste the contents
 
@@ -81,10 +108,15 @@ func ConfigHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Store in session (you'll need to set up session middleware)
-	session, _ := store.Get(r, "k8s-session")
-	session.Values["config"] = restConfig // This needs custom encoding
-	session.Save(r, w)
+	// store it in session
+	session, _ := s.Store.Get(r, "k8s-config-session")
+	session.Values["config"] = restConfig
+
+	err = session.Save(r, w)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	w.WriteHeader(http.StatusCreated)
 
