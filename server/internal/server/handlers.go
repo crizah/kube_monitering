@@ -15,6 +15,23 @@ var allowedOrigins = map[string]bool{
 	"http://localhost:80":   true,
 }
 
+func (s *Server) TestHandler(w http.ResponseWriter, r *http.Request) {
+	origin := r.Header.Get("Origin")
+	EnableCors(w, r, origin)
+
+	var req struct {
+		Yes string `json:"yes"`
+	}
+
+	json.NewDecoder(r.Body).Decode(&req)
+	fmt.Println(req.Yes)
+
+	json.NewEncoder(w).Encode(map[string]string{
+		"msg": "yay",
+	})
+
+}
+
 func EnableCors(w http.ResponseWriter, r *http.Request, origin string) {
 	if allowedOrigins[origin] {
 		w.Header().Set("Access-Control-Allow-Origin", origin)
@@ -48,7 +65,22 @@ func (s *Server) OverviewHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	restConfig := session.Values["config"].(*rest.Config)
+	fmt.Printf("Session values: %+v\n", session.Values)
+	auth, ok := session.Values["authenticated"].(bool)
+	if !ok || !auth {
+		http.Error(w, "not authenticated", http.StatusUnauthorized)
+		return
+
+	}
+
+	c := session.Values["config"].(*RestConfig)
+	restConfig := &rest.Config{
+		Host:            c.Host,
+		BearerToken:     c.BearerToken,
+		TLSClientConfig: c.TLSClientConfig,
+		Username:        c.Username,
+		Password:        c.Password,
+	}
 
 	overview, err := GetOverview(restConfig)
 	fmt.Printf("total nodes %d", overview.Nodes.TotalNodes)
@@ -108,9 +140,13 @@ func (s *Server) ConfigHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	configStruct := MakeConfig(restConfig)
+
 	// store it in session
 	session, _ := s.Store.Get(r, "k8s-config-session")
-	session.Values["config"] = restConfig
+
+	session.Values["config"] = configStruct
+	session.Values["authenticated"] = true
 
 	err = session.Save(r, w)
 	if err != nil {

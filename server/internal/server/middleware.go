@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/sessions"
+	"k8s.io/client-go/rest"
 )
 
 // create a session key
@@ -28,6 +29,25 @@ func CreateNewServer() *Server {
 	}
 
 	return &Server{SessionKey: sessionKey, Store: Store}
+
+}
+
+type RestConfig struct {
+	Host            string
+	BearerToken     string
+	TLSClientConfig rest.TLSClientConfig
+	Username        string
+	Password        string
+}
+
+func MakeConfig(c *rest.Config) *RestConfig {
+	return &RestConfig{
+		Host:            c.Host,
+		BearerToken:     c.BearerToken,
+		TLSClientConfig: c.TLSClientConfig,
+		Username:        c.Username,
+		Password:        c.Password,
+	}
 
 }
 

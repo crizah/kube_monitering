@@ -14,7 +14,7 @@ function UploadConf() {
     }
 
     function handlePastedContent(e) {
-        const pastedContent = e.target.value; // ✅ Was e.target.content
+        const pastedContent = e.target.value; 
         setPasted(pastedContent);
     }
 
@@ -26,14 +26,15 @@ function UploadConf() {
         try {
             const formData = new FormData();
             formData.append('pasted', pasted);
-            if (file) { // ✅ Only append if file exists
+            if (file) {
                 formData.append('file', file);
             }
             const res = await axios.post(
-                `${x}/config`, // ✅ Fixed endpoint (was /usernames)
+                `${x}/config`,
                 formData,
                 { withCredentials: true }
             );
+            console.log(res.data.message)
             navigate("/overview");
         } catch (error) {
             alert("Error: " + error.message);
@@ -48,7 +49,7 @@ function UploadConf() {
             </div>
             <div className="paste">
                 <h2>Paste content here</h2>
-                <textarea // ✅ Use textarea for multiline content
+                <textarea 
                     rows="10"
                     cols="50"
                     placeholder="Paste your kubeconfig here..."
@@ -60,11 +61,11 @@ function UploadConf() {
                 <h2>Upload your file here</h2>
                 <input
                     type="file"
-                    accept=".config,.yaml,.yml" // ✅ Added file type filter
+                    accept=".config,.yaml,.yml" 
                     onChange={handleFileChange}
                 />
             </div>
-            <button onClick={upload}>Upload</button> {/* ✅ Added button text */}
+            <button onClick={upload}>Upload</button>
         </div>
     );
 }
