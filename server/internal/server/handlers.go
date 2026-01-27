@@ -1,12 +1,15 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 
-	"k8s.io/client-go/rest"
+	"github.com/google/uuid"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -72,20 +75,14 @@ func (s *Server) OverviewHandler(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-
-	c := session.Values["config"].(*RestConfig)
-	restConfig := &rest.Config{
-		Host:            c.Host,
-		BearerToken:     c.BearerToken,
-		TLSClientConfig: c.TLSClientConfig,
-		Username:        c.Username,
-		Password:        c.Password,
-	}
+	// works till here
+	configID := session.Values["id"].(string)
+	restConfig := s.ConfigStore[configID]
 
 	overview, err := GetOverview(restConfig)
-	fmt.Printf("total nodes %d", overview.Nodes.TotalNodes)
+
 	if err != nil {
-		http.Error(w, "error getting whatever it is that u wanted"+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "error getting whatever it is that u wanted "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -134,18 +131,35 @@ func (s *Server) ConfigHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	restConfig, err := clientcmd.NewDefaultClientConfig(*config, &clientcmd.ConfigOverrides{}).ClientConfig()
+	c, err := clientcmd.NewDefaultClientConfig(*config, &clientcmd.ConfigOverrides{}).ClientConfig()
 	if err != nil {
 		http.Error(w, "Failed to build config: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	configStruct := MakeConfig(restConfig)
+	// test connection
 
-	// store it in session
+	cs, err := kubernetes.NewForConfig(c)
+	if err != nil {
+		http.Error(w, "Failed to create client: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	_, err = cs.CoreV1().Namespaces().List(context.Background(), metav1.ListOptions{Limit: 1})
+	if err != nil {
+		http.Error(w, "Failed to connect to cluster: "+err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	configID := uuid.New().String()
+
+	// in memory
+	s.ConfigStore[configID] = c
+
+	// store id in session
 	session, _ := s.Store.Get(r, "k8s-config-session")
+	session.Values["id"] = configID
 
-	session.Values["config"] = configStruct
 	session.Values["authenticated"] = true
 
 	err = session.Save(r, w)

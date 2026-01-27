@@ -48,7 +48,7 @@ func GetOverview(c *rest.Config) (*Overview, error) {
 	var mux sync.Mutex
 	wg.Add(3)
 
-	ov := &Overview{}
+	ov := &Overview{Errors: make([]error, 0)}
 
 	go func() {
 		defer wg.Done()

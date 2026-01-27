@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"net/http"
 
-	"github.com/gorilla/sessions"
 	"k8s.io/client-go/rest"
 )
 
@@ -13,41 +12,56 @@ import (
 // var store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY"))) when we want to use it
 
 type Server struct {
-	SessionKey []byte
-	Store      *sessions.CookieStore
+	ConfigStore map[string]*rest.Config
 }
 
 func CreateNewServer() *Server {
-	sessionKey := CreateSessionKey()
-	Store := sessions.NewCookieStore(sessionKey)
-	Store.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   86400 * 7, // 7 days
-		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
-	}
 
-	return &Server{SessionKey: sessionKey, Store: Store}
+	c := make(map[string]*rest.Config)
 
+	return &Server{ConfigStore: c}
+
+}
+
+type TLS struct {
+	TLSClientConfig rest.TLSClientConfig
 }
 
 type RestConfig struct {
-	Host            string
-	BearerToken     string
-	TLSClientConfig rest.TLSClientConfig
-	Username        string
-	Password        string
+	Insecure      bool
+	Authenticated bool
+	Host          string
+	BearerToken   string
+	Username      string
+	Password      string
 }
 
-func MakeConfig(c *rest.Config) *RestConfig {
+// {
+// 		{"id": "id"
+// 		  "host" : c.Host,
+// 		  "insecure" : "true",
+// 		  "authenticated" : "true",
+// 		  "ca_data" : base64.StdEncoding.EncodeToString(c.CAData)
+// 		  "bearer_token" : c.BearerToken
+// 		  "cert_data" : base64.StdEncoding.EncodeToString(c.CertData),
+// 		  "key_data" : base64.StdEncoding.EncodeToString(c.KeyData),
+// 		  "username" : c.Username,
+// 		  "password" : c.Password
+
+// 	    }
+
+// 	}
+
+func MakeConfig(c *rest.Config) (*RestConfig, *TLS) {
 	return &RestConfig{
-		Host:            c.Host,
-		BearerToken:     c.BearerToken,
-		TLSClientConfig: c.TLSClientConfig,
-		Username:        c.Username,
-		Password:        c.Password,
-	}
+			Host:        c.Host,
+			BearerToken: c.BearerToken,
+
+			Username: c.Username,
+			Password: c.Password,
+		}, &TLS{
+			TLSClientConfig: c.TLSClientConfig,
+		}
 
 }
 

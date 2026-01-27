@@ -13,7 +13,9 @@ import (
 func main() {
 	godotenv.Load()
 	x := os.Getenv("WITH_INGRESS")
+
 	s := server.CreateNewServer()
+
 	mux := http.NewServeMux()
 
 	mux.HandleFunc(fmt.Sprintf("%s/config", x), s.ConfigHandler)
