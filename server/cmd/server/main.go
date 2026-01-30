@@ -19,9 +19,15 @@ func main() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc(fmt.Sprintf("%s/config", x), s.ConfigHandler)
-	mux.HandleFunc("/test", s.TestHandler)
+	// mux.HandleFunc("/test", s.TestHandler)
 	mux.HandleFunc(fmt.Sprintf("%s/overview", x), s.OverviewHandler)
-	fmt.Println("Server starting on :8082")
+	mux.HandleFunc(fmt.Sprintf("%s/pods", x), s.PodsHandler)
+	mux.HandleFunc(fmt.Sprintf("%s/nodes", x), s.NodesHandler)
+	mux.HandleFunc(fmt.Sprintf("%s/svc", x), s.SVCHandler)
+	mux.HandleFunc(fmt.Sprintf("%s/secrets", x), s.SecretsHandler)
+	mux.HandleFunc(fmt.Sprintf("%s/ingress", x), s.IngressHandler)
+
+	fmt.Println("starting on :8082")
 	http.ListenAndServe(":8082", mux)
 
 }

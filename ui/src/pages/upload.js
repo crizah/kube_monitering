@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+
 function UploadConf() {
     const [file, setFile] = useState(null);
     const [pasted, setPasted] = useState("");
@@ -20,7 +21,7 @@ function UploadConf() {
 
     async function upload() {
         if (!file && !pasted) {
-            alert("please upload a file or paste the content");
+            alert("nothing selected");
             return;
         }
         try {
@@ -37,35 +38,35 @@ function UploadConf() {
             console.log(res.data.message)
             navigate("/overview");
         } catch (error) {
-            alert("Error: " + error.message);
+            alert("error " + error.message);
         }
     }
 
     return (
         <div className="container">
             <div className="headings">
-                <h1>Please upload your config file or paste its content</h1>
-                <h2>Config file usually located at ~/.kube/config</h2>
+                <h1>upload your config file or paste its content</h1>
+                <h2>config file usually located at ~/.kube/config</h2>
             </div>
             <div className="paste">
-                <h2>Paste content here</h2>
+                <h2>paste content here</h2>
                 <textarea 
                     rows="10"
                     cols="50"
-                    placeholder="Paste your kubeconfig here..."
+                    placeholder="Paste your kubeconfig here"
                     value={pasted}
                     onChange={handlePastedContent}
                 />
             </div>
             <div className="upload">
-                <h2>Upload your file here</h2>
+                <h2>upload your file here</h2>
                 <input
                     type="file"
                     accept=".config,.yaml,.yml" 
                     onChange={handleFileChange}
                 />
             </div>
-            <button onClick={upload}>Upload</button>
+            <button onClick={upload}>upload</button>
         </div>
     );
 }

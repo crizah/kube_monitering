@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	v1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -22,15 +23,34 @@ type Pods struct {
 	PodsList    map[string]*v1.PodList
 }
 
+type Ingress struct {
+	TotalIngress int
+	IngressList  map[string]*networkingv1.IngressList
+}
+
 type Services struct {
-	ServiceList map[string]*v1.ServiceList
+	Totalservices int
+	ServiceList   map[string]*v1.ServiceList
+}
+
+type NameSpace struct {
+	TotalNamespaces int
+	NameSpaces      *v1.NamespaceList
+}
+
+type Secrets struct {
+	TotalSecrets int
+	Secrets      map[string]*v1.SecretList
 }
 
 type Overview struct {
-	Nodes    *Nodes
-	Pods     *Pods
-	Services *Services
-	Errors   []error
+	Nodes     *Nodes
+	Pods      *Pods
+	Services  *Services
+	NameSpace *NameSpace
+	Ingress   *Ingress
+	Secrets   *Secrets
+	Errors    []error
 }
 
 func GetOverview(c *rest.Config) (*Overview, error) {
@@ -46,9 +66,12 @@ func GetOverview(c *rest.Config) (*Overview, error) {
 
 	var wg sync.WaitGroup
 	var mux sync.Mutex
-	wg.Add(3)
+	wg.Add(5)
 
-	ov := &Overview{Errors: make([]error, 0)}
+	ov := &Overview{NameSpace: &NameSpace{
+		TotalNamespaces: len(namespaces.Items),
+		NameSpaces:      namespaces,
+	}, Errors: make([]error, 0)}
 
 	go func() {
 		defer wg.Done()
@@ -88,6 +111,29 @@ func GetOverview(c *rest.Config) (*Overview, error) {
 		}
 
 	}()
+	go func() {
+		defer wg.Done()
+		ing, err := getIngress(cs, namespaces)
+		mux.Lock()
+		defer mux.Unlock()
+		if err != nil {
+			ov.Errors = append(ov.Errors, err)
+		} else {
+			ov.Ingress = ing
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		sec, err := getSecrets(cs, namespaces)
+		mux.Lock()
+		defer mux.Unlock()
+		if err != nil {
+			ov.Errors = append(ov.Errors, err)
+		} else {
+			ov.Secrets = sec
+		}
+
+	}()
 
 	wg.Wait()
 	if len(ov.Errors) > 0 {
@@ -109,7 +155,7 @@ func NewClientSet(c *rest.Config) (*kubernetes.Clientset, error) {
 }
 
 func getNamespaces(cs *kubernetes.Clientset) (*v1.NamespaceList, error) {
-	// kubectl get namespaces
+
 	namespaces, err := cs.CoreV1().Namespaces().List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return nil, err
@@ -177,5 +223,41 @@ func getServices(cs *kubernetes.Clientset, namespaces *v1.NamespaceList) (*Servi
 
 	}
 
-	return &Services{ServiceList: Svc}, nil
+	return &Services{Totalservices: length, ServiceList: Svc}, nil
+}
+
+func getIngress(cs *kubernetes.Clientset, namespace *v1.NamespaceList) (*Ingress, error) {
+	l := 0
+	Ing := make(map[string]*networkingv1.IngressList)
+	for _, ns := range namespace.Items {
+		ingress, err := cs.NetworkingV1().Ingresses(ns.Name).List(context.Background(), metav1.ListOptions{})
+
+		if err != nil {
+			return nil, err
+		}
+		l = l + len(ingress.Items)
+		Ing[ns.Name] = ingress
+	}
+
+	return &Ingress{TotalIngress: l, IngressList: Ing}, nil
+
+}
+
+func getSecrets(cs *kubernetes.Clientset, namespace *v1.NamespaceList) (*Secrets, error) {
+	l := 0
+
+	Sec := make(map[string]*v1.SecretList)
+	for _, ns := range namespace.Items {
+		sec, err := cs.CoreV1().Secrets(ns.Name).List(context.Background(), metav1.ListOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		Sec[ns.Name] = sec
+		l = l + len(sec.Items)
+
+	}
+
+	return &Secrets{TotalSecrets: l, Secrets: Sec}, nil
+
 }

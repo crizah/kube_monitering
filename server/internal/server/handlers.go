@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -18,22 +17,22 @@ var allowedOrigins = map[string]bool{
 	"http://localhost:80":   true,
 }
 
-func (s *Server) TestHandler(w http.ResponseWriter, r *http.Request) {
-	origin := r.Header.Get("Origin")
-	EnableCors(w, r, origin)
+// func (s *Server) TestHandler(w http.ResponseWriter, r *http.Request) {
+// 	origin := r.Header.Get("Origin")
+// 	EnableCors(w, r, origin)
 
-	var req struct {
-		Yes string `json:"yes"`
-	}
+// 	var req struct {
+// 		Yes string `json:"yes"`
+// 	}
 
-	json.NewDecoder(r.Body).Decode(&req)
-	fmt.Println(req.Yes)
+// 	json.NewDecoder(r.Body).Decode(&req)
+// 	fmt.Println(req.Yes)
 
-	json.NewEncoder(w).Encode(map[string]string{
-		"msg": "yay",
-	})
+// 	json.NewEncoder(w).Encode(map[string]string{
+// 		"msg": "yay",
+// 	})
 
-}
+// }
 
 func EnableCors(w http.ResponseWriter, r *http.Request, origin string) {
 	if allowedOrigins[origin] {
@@ -68,7 +67,6 @@ func (s *Server) OverviewHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("Session values: %+v\n", session.Values)
 	auth, ok := session.Values["authenticated"].(bool)
 	if !ok || !auth {
 		http.Error(w, "not authenticated", http.StatusUnauthorized)
@@ -85,8 +83,17 @@ func (s *Server) OverviewHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "error getting whatever it is that u wanted "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	s.OverviewStore[configID] = overview
+
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"overview": overview,
+		"totalNodes":   overview.Nodes.TotalNodes,
+		"runningNodes": overview.Nodes.RunningNodes,
+		"totalPods":    overview.Pods.TotalPods,
+		"runningPods":  overview.Pods.RunningPods,
+		"namespaces":   overview.NameSpace.TotalNamespaces,
+		"services":     overview.Services.Totalservices,
+		"totalIngress": overview.Ingress.TotalIngress,
+		"totalSecrets": overview.Secrets.TotalSecrets,
 	})
 
 }
@@ -141,22 +148,21 @@ func (s *Server) ConfigHandler(w http.ResponseWriter, r *http.Request) {
 
 	cs, err := kubernetes.NewForConfig(c)
 	if err != nil {
-		http.Error(w, "Failed to create client: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "error creating client"+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	_, err = cs.CoreV1().Namespaces().List(context.Background(), metav1.ListOptions{Limit: 1})
 	if err != nil {
-		http.Error(w, "Failed to connect to cluster: "+err.Error(), http.StatusUnauthorized)
+		http.Error(w, "error connecting to cluster "+err.Error(), http.StatusUnauthorized)
 		return
 	}
 
 	configID := uuid.New().String()
 
-	// in memory
+	// cartoon logic frfr
 	s.ConfigStore[configID] = c
 
-	// store id in session
 	session, _ := s.Store.Get(r, "k8s-config-session")
 	session.Values["id"] = configID
 
@@ -176,31 +182,167 @@ func (s *Server) ConfigHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// func PodsHandler(w http.ResponseWriter, r *http.Request) {
-// 	// kubectl get pods
-// 	// logs
-// 	// kubectl get pods -o wide
-// }
+func (s *Server) PodsHandler(w http.ResponseWriter, r *http.Request) {
 
-// func IngressHandler() {
-// 	// Get recipient and sender
+	// get
+	// kubectl get pods
+	// logs
+	// kubectl get pods -o wide
+	origin := r.Header.Get("Origin")
+	EnableCors(w, r, origin)
 
-// }
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 
-// func PodsHandler(w http.ResponseWriter, r *http.Request) {
-// 	// kubectl get pods
-// 	// logs
-// 	// kubectl get pods -o wide
-// }
+	session, err := s.Store.Get(r, "k8s-config-session")
+	if err != nil {
+		http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-// func IngressHandler(w http.ResponseWriter, r *http.Request) {
-// 	// gets all info about ingress controler
-// }
+	sid, ok := session.Values["id"].(string)
+	if !ok {
+		http.Error(w, "no session id", http.StatusUnauthorized)
+		return
+	}
 
-// func SVCHandler(w http.ResponseWriter, r *http.Request) {
-// 	// all about svc's
-// }
+	ov := s.OverviewStore[sid]
+	pods := ov.Pods
 
-// func SecretsHandler(w http.ResponseWriter, r *http.Request) {
-// 	// all info about secrets
-// }
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"pods": pods,
+	})
+
+}
+
+func (s *Server) IngressHandler(w http.ResponseWriter, r *http.Request) {
+	// get
+	origin := r.Header.Get("Origin")
+	EnableCors(w, r, origin)
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	session, err := s.Store.Get(r, "k8s-config-session")
+	if err != nil {
+		http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	sid, ok := session.Values["id"].(string)
+	if !ok {
+		http.Error(w, "error getting session id ", http.StatusInternalServerError)
+		return
+
+	}
+
+	ingress := s.OverviewStore[sid].Ingress
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"ingress": ingress,
+	})
+
+}
+
+func (s *Server) NodesHandler(w http.ResponseWriter, r *http.Request) {
+	// kubectl get pods
+	// logs
+	// kubectl get pods -o wide
+
+	// get
+	origin := r.Header.Get("Origin")
+	EnableCors(w, r, origin)
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	session, err := s.Store.Get(r, "k8s-config-session")
+	if err != nil {
+		http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	sid, ok := session.Values["id"].(string)
+	if !ok {
+		http.Error(w, "error getting session id ", http.StatusInternalServerError)
+		return
+
+	}
+
+	nodes := s.OverviewStore[sid].Nodes
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"nodes": nodes,
+	})
+
+}
+
+func (s *Server) SVCHandler(w http.ResponseWriter, r *http.Request) {
+	// all about svc's
+	// get
+	origin := r.Header.Get("Origin")
+	EnableCors(w, r, origin)
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	session, err := s.Store.Get(r, "k8s-config-session")
+	if err != nil {
+		http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	sid, ok := session.Values["id"].(string)
+	if !ok {
+		http.Error(w, "error getting session id ", http.StatusInternalServerError)
+		return
+
+	}
+
+	svc := s.OverviewStore[sid].Services
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"services": svc,
+	})
+
+}
+
+func (s *Server) SecretsHandler(w http.ResponseWriter, r *http.Request) {
+	// all info about secrets
+	// get
+	origin := r.Header.Get("Origin")
+	EnableCors(w, r, origin)
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	session, err := s.Store.Get(r, "k8s-config-session")
+	if err != nil {
+		http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	sid, ok := session.Values["id"].(string)
+	if !ok {
+		http.Error(w, "error getting session id ", http.StatusInternalServerError)
+		return
+
+	}
+
+	secrets := s.OverviewStore[sid].Secrets
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"secrets": secrets,
+	})
+
+}
