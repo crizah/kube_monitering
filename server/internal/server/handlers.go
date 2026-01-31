@@ -73,7 +73,7 @@ func (s *Server) OverviewHandler(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-	// works till here
+
 	configID := session.Values["id"].(string)
 	restConfig := s.ConfigStore[configID]
 

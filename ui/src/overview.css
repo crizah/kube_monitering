@@ -1,0 +1,133 @@
+/* ---------- Layout ---------- */
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.background {
+  flex: 1;
+  background-image: url("../public/images/bg.png");
+  background-color: #ceddbb;
+  min-height: 100vh;
+  width: 100%;
+  padding: 2rem 0;
+}
+
+/* ---------- Sidebar ---------- */
+
+.sidebar {
+  width: 220px;
+  background-color: #531614;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  color: #ecfdf5;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.sidebar-components {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  /* background: none;
+  border: none; */
+  color: black;
+  background-color: #b96363;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sidebar-item:hover {
+  background-color: #166534;
+}
+
+.sidebar-item img {
+  width: 20px;
+  height: 20px;
+}
+
+/* ---------- Cluster ---------- */
+
+.cluster-container {
+  max-width: 1000px;
+  margin: 15rem auto 0 auto;
+  background-color: #166534;
+  border-radius: 50px;
+  padding: 2rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.cluster-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+/* ---------- Stats ---------- */
+
+.stats-container {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+
+/* Individual stat blocks */
+
+.nodes,
+.pods,
+.services,
+.namespace {
+  background-color: #b96363;
+  border-radius: 20px;
+  padding: 1.5rem;
+  min-width: 180px;
+  font-weight: 600;
+}
+
+.image-class{
+  max-width: 50px;
+  flex-direction: column;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 60px;
+    padding: 1rem 0.5rem;
+  }
+
+  .sidebar-item span {
+    display: none;
+  }
+
+  .sidebar-header {
+    display: none;
+  }
+
+  .cluster-container {
+    padding: 1rem;
+    margin-top: 2rem;
+  }
+
+  .stats-container {
+    flex-direction: column;
+  }
+}
