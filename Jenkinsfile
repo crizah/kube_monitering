@@ -24,7 +24,7 @@ pipeline{
         }
 
         stage('build image'){
-            step{
+            steps{
                 script{
                     docker.withRegistry('', DOCKERHUB_CREDS){
                         sh """
