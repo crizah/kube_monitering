@@ -1,0 +1,14 @@
+FROM golang:1.25.5 
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+# COPY .env .
+
+
+RUN go build -o server ./cmd/server/main.go
+EXPOSE 8082
+CMD [ "./server" ]
+
