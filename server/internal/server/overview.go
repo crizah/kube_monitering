@@ -287,12 +287,13 @@ func getPods(cs *kubernetes.Clientset, namespaces *v1.NamespaceList) (*Pods, err
 			var p *PodsInfo
 
 			// status
-			status := string(pod.Status.Phase)
+			status := "nah"
 
 			// running pods
 
 			for _, condition := range pod.Status.Conditions {
 				if condition.Type == v1.PodReady && condition.Status == v1.ConditionTrue {
+					status = "yay"
 					runningPods++
 					break
 				}
