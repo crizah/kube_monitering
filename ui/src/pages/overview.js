@@ -119,7 +119,7 @@ function Overview() {
     );
   }
 
-  // Get namespace data
+  
   const totalPodsMap = overview.get("totalPods"); // map[string]int
   const runningPodsMap = overview.get("runningPods"); // map[string]int
   const totalServicesMap = overview.get("services"); // map[string]int
@@ -129,13 +129,13 @@ function Overview() {
   const namespaceList = overview.get("namespacelist"); // [string]
 
   // values for selected namespace
-  const totalPods = totalPodsMap?.[namespace] || 0;
-  const runningPods = runningPodsMap?.[namespace] || 0;
+  const totalPods = totalPodsMap[namespace] ;
+  const runningPods = runningPodsMap[namespace] ;
   const unavailablePods = totalPods - runningPods;
   
-  const totalServices = totalServicesMap?.[namespace] || 0;
-  const totalIngress = totalIngressMap?.[namespace] || 0;
-  const totalSecrets = totalSecretsMap?.[namespace] || 0;
+  const totalServices = totalServicesMap[namespace];
+  const totalIngress = totalIngressMap[namespace];
+  const totalSecrets = totalSecretsMap[namespace];
 
   const totalNodes = overview.get("totalNodes");
   const runningNodes = overview.get("runningNodes");
@@ -172,31 +172,46 @@ function Overview() {
               disabled={refreshing}
               title="Refresh cluster data"
             >
-              <svg 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2"
-                className="refresh-icon"
-              >
-                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-              </svg>
+
+              <svg
+  viewBox="0 0 32 32"
+  version="1.1"
+  xmlns="http://www.w3.org/2000/svg"
+  fill="#ffffff"
+>
+  <g strokeWidth="0" />
+  <g strokeLinecap="round" strokeLinejoin="round" />
+  <g>
+    <title>refresh</title>
+
+    <g fill="none" fillRule="evenodd">
+      <g transform="translate(-154, -1141)" fill="#ffffff">
+        <path d="M184.858,1143.56 C185.397,1143.02 186.009,1142.55 186.009,1142 C186.009,1141.45 185.562,1141 185.009,1141 L175.009,1141 C174.888,1141 174.009,1141 174.009,1142 L174.009,1152 C174.009,1152.55 174.457,1153 175.009,1153 C175.562,1153 175.947,1152.47 176.373,1152.05 L179.152,1149.27 C180.922,1151.36 182,1154.05 182,1157 C182,1163.63 176.627,1169 170,1169 C163.373,1169 158,1163.63 158,1157 C158,1151.06 162.327,1146.13 168,1145.18 L168,1141.14 C160.109,1142.12 154,1148.84 154,1157 C154,1165.84 161.164,1173 170,1173 C178.836,1173 186,1165.84 186,1157 C186,1152.94 184.484,1149.25 181.993,1146.43 L184.858,1143.56" />
+      </g>
+    </g>
+  </g>
+</svg>
+
+              
               {refreshing ? 'Refreshing...' : 'Refresh'}
             </button>
           </div>
         </div>
 
         <div className="stats-grid">
-          {/* Pods Card */}
+
+
+          {/* pods */}
           <div className="stat-card">
             <div className="stat-header">
               <div className="stat-icon pods-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="3" width="7" height="7" rx="1"/>
-                  <rect x="14" y="3" width="7" height="7" rx="1"/>
-                  <rect x="14" y="14" width="7" height="7" rx="1"/>
-                  <rect x="3" y="14" width="7" height="7" rx="1"/>
-                </svg>
+                 <svg viewBox="0 0 24 24" fill="none" stroke="#6371da" strokeWidth="2">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+              </svg>
+                
               </div>
               <h3>Pods</h3>
             </div>
@@ -224,16 +239,15 @@ function Overview() {
             </div>
           </div>
 
-          {/* Nodes Card */}
+          {/* nodes */}
           <div className="stat-card">
             <div className="stat-header">
               <div className="stat-icon nodes-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="2" y="2" width="20" height="8" rx="2"/>
-                  <rect x="2" y="14" width="20" height="8" rx="2"/>
-                  <line x1="6" y1="6" x2="6" y2="6"/>
-                  <line x1="6" y1="18" x2="6" y2="18"/>
-                </svg>
+                
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#6371da" strokeWidth="2">
+                <rect x="2" y="2" width="20" height="8" rx="2"/>
+                <rect x="2" y="14" width="20" height="8" rx="2"/>
+              </svg>
               </div>
               <h3>Nodes</h3>
             </div>
@@ -261,18 +275,15 @@ function Overview() {
             </div>
           </div>
 
-          {/* Services Card */}
+          {/* svc*/}
           <div className="stat-card">
             <div className="stat-header">
               <div className="stat-icon services-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="3"/>
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="2" x2="12" y2="9"/>
-                  <line x1="12" y1="15" x2="12" y2="22"/>
-                  <line x1="2" y1="12" x2="9" y2="12"/>
-                  <line x1="15" y1="12" x2="22" y2="12"/>
-                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16">
+    <g id="SVGRepo_iconCarrier" fill="#6371da">
+      <path d="M5 1h6v2H9v1.07c3.392.486 6 3.404 6 6.93H1a7 7 0 0 1 6-6.93V3H5zM15 15v-2H1v2z"></path>
+    </g>
+  </svg>
               </div>
               <h3>Services</h3>
             </div>
@@ -284,16 +295,28 @@ function Overview() {
             </div>
           </div>
 
-          {/* Ingress Card */}
+          {/* egress means exit */}
           <div className="stat-card">
             <div className="stat-header">
               <div className="stat-icon ingress-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="12" y1="2" x2="12" y2="22"/>
-                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                  <polyline points="7 3 12 2 17 3"/>
-                  <polyline points="7 21 12 22 17 21"/>
-                </svg>
+                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <g id="SVGRepo_iconCarrier">
+      <g
+        stroke="#6371da"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2.5"
+        clipPath="url(#clip0_429_11126)"
+      >
+        <path d="M9 4h10v14a2 2 0 0 1-2 2H9M12 15l3-3m0 0-3-3m3 3H5"></path>
+      </g>
+      <defs>
+        <clipPath id="clip0_429_11126">
+          <path fill="#6371da" d="M0 0h24v24H0z"></path>
+        </clipPath>
+      </defs>
+    </g>
+  </svg>
               </div>
               <h3>Ingress</h3>
             </div>
@@ -306,27 +329,30 @@ function Overview() {
           </div>
         </div>
 
-        {/* Resource Utilization Section */}
+        {/* resources */}
         <div className="resource-section">
           <h2 className="section-title">Resource Utilization</h2>
           
           <div className="resource-grid">
-            {/* CPU Usage Card */}
+            {/* cpu*/}
             <div className="resource-card">
               <div className="resource-header">
                 <div className="resource-icon cpu-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="4" y="4" width="16" height="16" rx="2"/>
-                    <rect x="9" y="9" width="6" height="6"/>
-                    <line x1="9" y1="2" x2="9" y2="4"/>
-                    <line x1="15" y1="2" x2="15" y2="4"/>
-                    <line x1="9" y1="20" x2="9" y2="22"/>
-                    <line x1="15" y1="20" x2="15" y2="22"/>
-                    <line x1="20" y1="9" x2="22" y2="9"/>
-                    <line x1="20" y1="15" x2="22" y2="15"/>
-                    <line x1="2" y1="9" x2="4" y2="9"/>
-                    <line x1="2" y1="15" x2="4" y2="15"/>
-                  </svg>
+
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <g id="SVGRepo_iconCarrier" stroke="#6371da" strokeWidth="1.5">
+      <path
+        d="M7 10c0-1.414 0-2.121.44-2.56C7.878 7 8.585 7 10 7h4c1.414 0 2.121 0 2.56.44.44.439.44 1.146.44 2.56v4c0 1.414 0 2.121-.44 2.56-.439.44-1.146.44-2.56.44h-4c-1.414 0-2.121 0-2.56-.44C7 16.122 7 15.415 7 14z"
+        opacity="0.5"
+      ></path>
+      <path d="M4 12c0-3.771 0-5.657 1.172-6.828S8.229 4 12 4s5.657 0 6.828 1.172S20 8.229 20 12s0 5.657-1.172 6.828S15.771 20 12 20s-5.657 0-6.828-1.172S4 15.771 4 12Z"></path>
+      <path
+        strokeLinecap="round"
+        d="M4 12H2M22 12h-2M4 9H2M22 9h-2M4 15H2M22 15h-2M12 20v2M12 2v2M9 20v2M9 2v2M15 20v2M15 2v2"
+        opacity="0.5"
+      ></path>
+    </g>
+  </svg>
                 </div>
                 <h3>CPU Usage</h3>
               </div>
@@ -347,14 +373,22 @@ function Overview() {
               </div>
             </div>
 
-            {/* Memory Usage Card */}
+            {/*memory*/}
             <div className="resource-card">
               <div className="resource-header">
                 <div className="resource-icon memory-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
-                    <rect x="3" y="4" width="18" height="16" rx="2"/>
-                  </svg>
+                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 48 48">
+    <g
+      id="SVGRepo_iconCarrier"
+      stroke="#6371da"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="4"
+    >
+      <path d="M40 40H8a2 2 0 0 1-2-2V19.106a2 2 0 0 1 .336-1.11l6.07-9.105A2 2 0 0 1 14.07 8H40a2 2 0 0 1 2 2v28a2 2 0 0 1-2 2M18 16V8M24 16V8M30 16V8M36 16V8"></path>
+      <path fill="none" d="M15 28h18v12H15z"></path>
+    </g>
+  </svg>
                 </div>
                 <h3>Memory Usage</h3>
               </div>
@@ -377,10 +411,20 @@ function Overview() {
           </div>
         </div>
 
-        {/* Additional Info */}
+        {/* hush hush */}
         <div className="info-cards">
           <div className="info-card">
-            <div className="info-icon">🔐</div>
+            <div className="info-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path
+      id="SVGRepo_iconCarrier"
+      fill="#6371da"
+      fillRule="nonzero"
+      d="M20 0v11.887h-3.962a.19.19 0 0 1-.189-.189v-1.132c0-.104.085-.189.189-.189h2.452V1.509h-2.452a.19.19 0 0 1-.189-.188V.189c0-.105.085-.189.189-.189zM4.31 0c.103 0 .188.084.188.189V1.32a.19.19 0 0 1-.189.188h-2.8v8.868h2.783c.105 0 .19.085.19.189v1.132a.19.19 0 0 1-.19.189H0V0zm11.117 3.868v1.456l.06.025 1.351-.478.28.82-1.362.465-.037.098.937 1.26-.706.514-.912-1.26h-.085l-.913 1.26-.705-.514.924-1.26-.024-.098-1.362-.465.28-.82 1.337.478.073-.025V3.868zm-10.231 0V5.31l.06.024 1.351-.473.28.812-1.363.46-.036.097.937 1.248-.706.51-.912-1.249h-.085l-.913 1.248-.705-.509.924-1.248-.024-.097-1.362-.46.28-.812 1.337.473.073-.024V3.868zm5.094 0V5.31l.061.024 1.35-.473.28.812-1.362.46-.037.097.937 1.248-.706.51-.912-1.249h-.085l-.912 1.248-.706-.509.925-1.248-.025-.097-1.362-.46.28-.812 1.338.473.073-.024V3.868z"
+      transform="translate(2 6)"
+    ></path>
+  </svg>
+            </div>
             <div className="info-content">
               <span className="info-label">Secrets</span>
               <span className="info-value">{totalSecrets}</span>
@@ -397,24 +441,20 @@ function Sidebar({ activeNav, onNavigate}) {
     <div className="sidebar">
       <div className="sidebar-header">
         <div className="logo">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
-          </svg>
+          <div className="k8"></div>
+          
+         
           <span>K8s Dashboard</span>
         </div>
       </div>
 
       <nav className="sidebar-nav">
         <button 
-          className={`nav-item ${activeNav === 'overview' ? 'active' : ''}`}
+          className={`nav-item ${activeNav === 'overview'?'active' : ''}`}
           onClick={() => onNavigate('/overview', 'overview')}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="3" width="7" height="7"/>
-            <rect x="14" y="3" width="7" height="7"/>
-            <rect x="14" y="14" width="7" height="7"/>
-            <rect x="3" y="14" width="7" height="7"/>
-          </svg>
+        
+          
           <span>Overview</span>
         </button>
 
@@ -422,12 +462,7 @@ function Sidebar({ activeNav, onNavigate}) {
           className={`nav-item ${activeNav === 'pods' ? 'active' : ''}`}
           onClick={() => onNavigate('/pods', 'pods')}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="3" width="7" height="7" rx="1"/>
-            <rect x="14" y="3" width="7" height="7" rx="1"/>
-            <rect x="14" y="14" width="7" height="7" rx="1"/>
-            <rect x="3" y="14" width="7" height="7" rx="1"/>
-          </svg>
+         
           <span>Pods</span>
         </button>
 
@@ -435,12 +470,7 @@ function Sidebar({ activeNav, onNavigate}) {
           className={`nav-item ${activeNav === 'nodes' ? 'active' : ''}`}
           onClick={() => onNavigate('/nodes', 'nodes')}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="2" y="2" width="20" height="8" rx="2"/>
-            <rect x="2" y="14" width="20" height="8" rx="2"/>
-            <line x1="6" y1="6" x2="6" y2="6"/>
-            <line x1="6" y1="18" x2="6" y2="18"/>
-          </svg>
+        
           <span>Nodes</span>
         </button>
 
@@ -448,14 +478,7 @@ function Sidebar({ activeNav, onNavigate}) {
           className={`nav-item ${activeNav === 'services' ? 'active' : ''}`}
           onClick={() => onNavigate('/services', 'services')}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="3"/>
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="12" y1="2" x2="12" y2="9"/>
-            <line x1="12" y1="15" x2="12" y2="22"/>
-            <line x1="2" y1="12" x2="9" y2="12"/>
-            <line x1="15" y1="12" x2="22" y2="12"/>
-          </svg>
+         
           <span>Services</span>
         </button>
 
@@ -463,10 +486,7 @@ function Sidebar({ activeNav, onNavigate}) {
           className={`nav-item ${activeNav === 'ingress' ? 'active' : ''}`}
           onClick={() => onNavigate('/ingress', 'ingress')}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="12" y1="2" x2="12" y2="22"/>
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-          </svg>
+        
           <span>Ingress</span>
         </button>
 
@@ -474,11 +494,7 @@ function Sidebar({ activeNav, onNavigate}) {
           className={`nav-item ${activeNav === 'deployments' ? 'active' : ''}`}
           onClick={() => onNavigate('/deployments', 'deployments')}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
-            <polyline points="2 17 12 22 22 17"/>
-            <polyline points="2 12 12 17 22 12"/>
-          </svg>
+        
           <span>Deployments</span>
         </button>
 
@@ -486,23 +502,15 @@ function Sidebar({ activeNav, onNavigate}) {
           className={`nav-item ${activeNav === 'configmaps' ? 'active' : ''}`}
           onClick={() => onNavigate('/configmaps', 'configmaps')}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <line x1="12" y1="18" x2="12" y2="12"/>
-            <line x1="9" y1="15" x2="15" y2="15"/>
-          </svg>
+         
           <span>ConfigMaps</span>
         </button>
 
         <button 
-          className={`nav-item ${activeNav === 'secrets' ? 'active' : ''}`}
+          className={`nav-item ${activeNav ==='secrets'?'active':''}`}
           onClick={() => onNavigate('/secrets', 'secrets')}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-          </svg>
+        
           <span>Secrets</span>
         </button>
       </nav>

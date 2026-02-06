@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import "../upload.css"
 
 
 function UploadConf() {
@@ -64,6 +65,7 @@ function UploadConf() {
                 <input
                     type="file"
                     accept=".config,.yaml,.yml" 
+                   
                     onChange={handleFileChange}
                 />
             </div>

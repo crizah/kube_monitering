@@ -4,7 +4,8 @@
 .pods-container {
   display: flex;
   min-height: 100vh;
-  background: #f8fafc;
+  background: #0f1419;
+  color: #e6edf3;
 }
 
 /* Sidebar */
@@ -32,10 +33,20 @@
   font-weight: 700;
 }
 
-.logo svg {
-  width: 32px;
-  height: 32px;
-  color: #3b82f6;
+.k8{
+  background-image: url('../public/images/k8s.png');
+  background-size: contain;
+  
+  
+  /* background-position: center; */
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  
+  /* display: flex;
+  width: 30px;
+  height: 30px; */
+
 }
 
 .sidebar-nav {
@@ -202,7 +213,7 @@
 }
 
 .summary-card {
-  background: white;
+  background: #0f1419;
   border-radius: 12px;
   padding: 24px;
   display: flex;
@@ -232,12 +243,12 @@
 }
 
 .summary-card.total .summary-icon {
-  background: #dbeafe;
+  background: #0f1419;
   color: #3b82f6;
 }
 
 .summary-card.running .summary-icon {
-  background: #dcfce7;
+  background: #0f1419;
   color: #22c55e;
 }
 
@@ -266,7 +277,8 @@
 
 /* Table Container */
 .table-container {
-  background: white;
+  background: #161b22;
+  border: 1px solid #30363d;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -281,7 +293,7 @@
 }
 
 .table-header h2 {
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 700;
   color: #1e293b;
   margin: 0;
@@ -304,29 +316,30 @@
 }
 
 .pods-table thead {
-  background: #f8fafc;
+  background: #21262d;
+  /* background: #1e293b; */
 }
 
 .pods-table th {
   padding: 16px 20px;
-  text-align: left;
-  font-size: 12px;
+  text-align: center;
+  font-size: 13px;
   font-weight: 600;
-  color: #64748b;
+  color: #8b949e;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid #e2e8f0;
+  
   white-space: nowrap;
 }
 
 .pods-table tbody tr.pod-row {
-  border-bottom: 1px solid #e2e8f0;
+  
   transition: all 0.2s;
   cursor: pointer;
 }
 
 .pods-table tbody tr.pod-row:hover {
-  background: #f8fafc;
+  background: #21262d;
 }
 
 .pods-table tbody tr.pod-row.status-ready {
@@ -338,13 +351,13 @@
 }
 
 .pods-table tbody tr.pod-row.expanded {
-  background: #f1f5f9;
+  background: #3f4752;
 }
 
 .pods-table td {
   padding: 16px 20px;
   font-size: 14px;
-  color: #334155;
+  color: #e6edf3;;
 }
 
 /* Expand Cell */
@@ -395,7 +408,7 @@
 
 .name-cell span {
   font-weight: 500;
-  color: #1e293b;
+  color: #ffffff;
 }
 
 /* Status Badge */
@@ -427,8 +440,8 @@
   border-radius: 6px;
   font-size: 13px;
   font-weight: 500;
-  background: #f1f5f9;
-  color: #475569;
+  /* background: #f1f5f9; */
+  color: #ffffff;
 }
 
 /* Cell Specific Styles */
@@ -463,14 +476,14 @@
   border-radius: 6px;
   font-size: 13px;
   font-weight: 600;
-  background: #eff6ff;
-  color: #1e40af;
+  background: #34394e;
+  color: #ffffff;
 }
 
 /* Pod Details Row */
 .pod-details-row {
-  background: #f8fafc !important;
-  border-bottom: 2px solid #e2e8f0 !important;
+  background: #21262d!important;
+  /* border-bottom: 2px solid #e2e8f0 !important; */
 }
 
 .pod-details-row td {
@@ -496,15 +509,20 @@
 .details-header {
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 2px solid #e2e8f0;
+  /* border-bottom: 2px solid #e2e8f0; */
 }
 
 .details-header h3 {
   font-size: 16px;
   font-weight: 600;
-  color: #1e293b;
+  color: ffffff;
   margin: 0;
 }
+
+
+
+
+
 
 /* Containers Grid */
 .containers-grid {
@@ -514,36 +532,36 @@
 }
 
 .container-card {
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: #21262d;
+  border: 1px solid rgb(94, 100, 107);
   border-radius: 8px;
   overflow: hidden;
   transition: all 0.2s;
 }
 
 .container-card:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+  border-color: #9dacc4;
+  box-shadow: 0 2px 4px rgba(162, 169, 180, 0.1);
 }
 
 .container-header {
-  background: #f8fafc;
+  background: #21262d;
   padding: 12px 16px;
   display: flex;
   align-items: center;
   gap: 12px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid rgb(94, 100, 107);
 }
 
 .container-icon {
   width: 32px;
   height: 32px;
-  background: #eff6ff;
+  background: #21262d;
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #3b82f6;
+  color: #8b949e;
 }
 
 .container-icon svg {
@@ -558,7 +576,7 @@
 .container-name {
   font-size: 14px;
   font-weight: 600;
-  color: #1e293b;
+  color: #ffffff;
 }
 
 .container-body {
@@ -577,20 +595,20 @@
 .info-label {
   font-size: 12px;
   font-weight: 600;
-  color: #64748b;
+  color: #8b949e;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .info-value {
   font-size: 13px;
-  color: #334155;
+  color: #8b949e;
   word-break: break-all;
 }
 
 .image-value {
   font-family: monospace;
-  background: #f1f5f9;
+  background: #21262d;
   padding: 6px 10px;
   border-radius: 4px;
   font-size: 12px;
@@ -607,8 +625,8 @@
   display: inline-flex;
   align-items: center;
   padding: 4px 10px;
-  background: #eff6ff;
-  color: #1e40af;
+  background: #34394e;
+  color: #ffffff;
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;

@@ -157,6 +157,7 @@ body {
 }
 
 .logo {
+ 
   display: flex;
   align-items: center;
   gap: 12px;
@@ -165,7 +166,24 @@ body {
   color: #58a6ff;
 }
 
+.k8{
+  background-image: url('../public/images/k8s.png');
+  background-size: contain;
+  
+  
+  /* background-position: center; */
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  
+  /* display: flex;
+  width: 30px;
+  height: 30px; */
+
+}
+
 .logo svg {
+ 
   width: 28px;
   height: 28px;
 }
@@ -193,11 +211,53 @@ body {
   text-align: left;
 }
 
-.nav-item svg {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
+.overview-logo .pods-logo .deploy-logo .configmap-logo .svc-logo .ingress-logo .secrets-logo .nodes-logo{
+  background-size: contain;
+  
+  
+  /* background-position: center; */
+  width: 30px;
+  height: 30px;
+  cursor: pointer
+
 }
+
+.overview-logo{
+   background-image: url('../public/images/k8s.png');
+ 
+}
+
+.pods-logo{
+   background-image: url('../public/images/k8s.png');
+ 
+}
+.deploy-logo{
+   background-image: url('../public/images/k8s.png');
+  
+}
+
+.configmap-logo{
+   background-image: url('../public/images/k8s.png');
+  
+}
+.svc-logo{
+   background-image: url('../public/images/k8s.png');
+  
+}
+.ingress-logo{
+   background-image: url('../public/images/k8s.png');
+  
+}
+.secrets-logo{
+   background-image: url('../public/images/k8s.png');
+  
+}
+
+.nodes-logo{
+   background-image: url('../public/images/k8s.png');
+  
+}
+
 
 .nav-item:hover {
   background: #21262d;
@@ -293,12 +353,12 @@ body {
 }
 
 .stat-icon svg {
-  width: 22px;
-  height: 22px;
+  width: 50px;
+  height: 50px;
 }
 
-.pods-icon {
-  background: rgba(88, 166, 255, 0.1);
+/* .pods-icon {
+  background: rgba(120, 151, 188, 0.1);
   color: #58a6ff;
 }
 
@@ -315,7 +375,7 @@ body {
 .ingress-icon {
   background: rgba(245, 158, 11, 0.1);
   color: #fbbf24;
-}
+} */
 
 .stat-header h3 {
   font-size: 16px;
@@ -446,11 +506,11 @@ body {
 }
 
 .resource-icon svg {
-  width: 24px;
-  height: 24px;
+  width: 50px;
+  height: 50px;
 }
 
-.cpu-icon {
+/* .cpu-icon {
   background: rgba(88, 166, 255, 0.1);
   color: #58a6ff;
 }
@@ -458,7 +518,7 @@ body {
 .memory-icon {
   background: rgba(139, 92, 246, 0.1);
   color: #a78bfa;
-}
+} */
 
 .resource-header h3 {
   font-size: 18px;
@@ -550,6 +610,12 @@ body {
 
 .info-icon {
   font-size: 32px;
+}
+
+
+.info-icon svg {
+  width: 50px;
+  height: 50px;
 }
 
 .info-content {

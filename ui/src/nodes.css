@@ -44,9 +44,21 @@ body {
   color: #58a6ff;
 }
 
-.logo svg {
-  width: 28px;
-  height: 28px;
+
+.k8{
+  background-image: url('../public/images/k8s.png');
+  background-size: contain;
+  
+  
+  /* background-position: center; */
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  
+  /* display: flex;
+  width: 30px;
+  height: 30px; */
+
 }
 
 .sidebar-nav {
@@ -283,7 +295,7 @@ body {
 
 .nodes-table th {
   padding: 16px 20px;
-  text-align: left;
+  text-align: center;
   font-size: 13px;
   font-weight: 600;
   color: #8b949e;
@@ -299,6 +311,7 @@ body {
 
 .nodes-table tbody tr:hover {
   background: #21262d;
+
 }
 
 .nodes-table tbody tr:last-child {
@@ -316,14 +329,14 @@ body {
 .name-cell {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-weight: 600;
+  gap: 0px;
+  font-weight: 400;
 }
 
 .name-cell svg {
   width: 20px;
   height: 20px;
-  color: #58a6ff;
+  color: #ffffff;
   flex-shrink: 0;
 }
 
@@ -337,6 +350,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
 
 .status-badge.ready {
   background: rgba(63, 185, 80, 0.15);
@@ -378,22 +392,32 @@ body {
 .resource-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 3px;
 }
 
 .resource-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
+  gap: 0px;
+  font-size: 13px;
 }
+.resource-item svg{
+  width: 10px;
+  height: 10px;
+ 
+
+}
+
 
 .resource-icon {
   font-size: 14px;
+  
 }
 
+
+
 .resource-text {
-  color: #8b949e;
+  color: #ffffff;
 }
 
 /* Loading States */
