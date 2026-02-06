@@ -48,9 +48,10 @@ type Port struct {
 }
 
 type Pods struct {
-	TotalPods   int         `json:"total"`
-	RunningPods int         `json:"running"`
-	PodsList    []*PodsInfo `json:"pods"`
+	TotalPods     map[string]int `json:"total"`
+	RunningPods   map[string]int `json:"running"`
+	PodsList      []*PodsInfo    `json:"pods"`
+	NamespaceList []string       `json:"namespacelist"`
 }
 
 type PodsInfo struct {
@@ -67,32 +68,35 @@ type PodsInfo struct {
 }
 
 type Ingress struct {
-	TotalIngress int
-	IngressList  map[string]*networkingv1.IngressList
+	TotalIngress   map[string]int                       `json:"total"`
+	RunningIngress map[string]int                       `json:"running"`
+	IngressList    map[string]*networkingv1.IngressList `json:"ingress"`
 }
 
 type Services struct {
-	Totalservices int
-	ServiceList   map[string]*v1.ServiceList
+	Totalservices  map[string]int             `json:"total"`
+	RunningIngress map[string]int             `json:"running"`
+	ServiceList    map[string]*v1.ServiceList `json:"services"`
 }
 
 type NameSpace struct {
-	TotalNamespaces int
-	NameSpaces      *v1.NamespaceList
+	TotalNamespaces int               `json:"total"`
+	NameSpaceList   []string          `json:"namespacelist"`
+	NameSpaces      *v1.NamespaceList `json:"namespaces"`
 }
 
 type Secrets struct {
-	TotalSecrets int
-	Secrets      map[string]*v1.SecretList
+	TotalSecrets int                       `json:"total"`
+	Secrets      map[string]*v1.SecretList `json:"secrets"`
 }
 
 type Overview struct {
-	Nodes     *Nodes
-	Pods      *Pods
-	Services  *Services
-	NameSpace *NameSpace
-	Ingress   *Ingress
-	Secrets   *Secrets
+	Nodes     *Nodes     `json:"nodes"`
+	Pods      *Pods      `json:"pods"`
+	Services  *Services  `json:"services"`
+	NameSpace *NameSpace `json:"namespaces"`
+	Ingress   *Ingress   `json:"ingress"`
+	Secrets   *Secrets   `json:"secrets"`
 	Errors    []error
 }
 
@@ -110,10 +114,15 @@ func GetOverview(c *rest.Config) (*Overview, error) {
 	var wg sync.WaitGroup
 	var mux sync.Mutex
 	wg.Add(5)
+	n := make([]string, 0)
+	for _, ns := range namespaces.Items {
+		n = append(n, ns.Name)
+	}
 
 	ov := &Overview{NameSpace: &NameSpace{
 		TotalNamespaces: len(namespaces.Items),
 		NameSpaces:      namespaces,
+		NameSpaceList:   n,
 	}, Errors: make([]error, 0)}
 
 	go func() {
@@ -269,10 +278,15 @@ func getNodes(cs *kubernetes.Clientset) (*Nodes, error) {
 func getPods(cs *kubernetes.Clientset, namespaces *v1.NamespaceList) (*Pods, error) {
 
 	var arr []*PodsInfo
+	totalPods := make(map[string]int)
+	runPods := make(map[string]int)
+
 	runningPods := 0
 	length := 0 // total pods
 
 	for _, ns := range namespaces.Items {
+		r := 0
+		l := 0
 
 		pods, err := cs.CoreV1().Pods(ns.Name).List(context.Background(), metav1.ListOptions{})
 
@@ -281,6 +295,7 @@ func getPods(cs *kubernetes.Clientset, namespaces *v1.NamespaceList) (*Pods, err
 		}
 
 		length = length + len(pods.Items)
+		l = l + len(pods.Items)
 
 		for _, pod := range pods.Items {
 
@@ -294,6 +309,7 @@ func getPods(cs *kubernetes.Clientset, namespaces *v1.NamespaceList) (*Pods, err
 			for _, condition := range pod.Status.Conditions {
 				if condition.Type == v1.PodReady && condition.Status == v1.ConditionTrue {
 					status = "yay"
+					r++
 					runningPods++
 					break
 				}
@@ -357,43 +373,58 @@ func getPods(cs *kubernetes.Clientset, namespaces *v1.NamespaceList) (*Pods, err
 			}
 
 			arr = append(arr, p)
+
 		}
+		runPods[ns.Name] = r
+		totalPods[ns.Name] = l
 
 	}
 
-	return &Pods{TotalPods: length, RunningPods: runningPods, PodsList: arr}, nil
+	return &Pods{TotalPods: totalPods, RunningPods: runPods, PodsList: arr}, nil
 }
 
 func getServices(cs *kubernetes.Clientset, namespaces *v1.NamespaceList) (*Services, error) {
 	length := 0
+	total := make(map[string]int)
+	// running := make(map[string]int)
 	Svc := make(map[string]*v1.ServiceList)
 	for _, ns := range namespaces.Items {
+		l := 0
+		// r := 0
 		svc, err := cs.CoreV1().Services(ns.Name).List(context.Background(), metav1.ListOptions{})
 		if err != nil {
 			return nil, err
 		}
+		l = l + len(svc.Items)
+
 		Svc[ns.Name] = svc
+		total[ns.Name] = l
+
 		length = length + len(svc.Items)
 
 	}
 
-	return &Services{Totalservices: length, ServiceList: Svc}, nil
+	return &Services{Totalservices: total, ServiceList: Svc}, nil
 }
 
 func getIngress(cs *kubernetes.Clientset, namespace *v1.NamespaceList) (*Ingress, error) {
 	l := 0
+	total := make(map[string]int)
 	Ing := make(map[string]*networkingv1.IngressList)
 	for _, ns := range namespace.Items {
+		length := 0
 		ingress, err := cs.NetworkingV1().Ingresses(ns.Name).List(context.Background(), metav1.ListOptions{})
 
 		if err != nil {
 			return nil, err
 		}
+		length = length + len(ingress.Items)
 		l = l + len(ingress.Items)
+		total[ns.Name] = l
 		Ing[ns.Name] = ingress
 	}
 
-	return &Ingress{TotalIngress: l, IngressList: Ing}, nil
+	return &Ingress{TotalIngress: total, IngressList: Ing}, nil
 
 }
 

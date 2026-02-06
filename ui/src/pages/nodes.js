@@ -9,13 +9,33 @@ function Nodes() {
   const [loading, setLoading] = useState(true); 
   const [error, setError] = useState(null); 
   const [activeNav, setActiveNav] = useState('nodes');
+  const [refreshing, setRefresh] = useState(false);
+ 
   const navigate = useNavigate();
   const x = process.env.REACT_APP_BACKEND_URL;
-  
+  //  const x = window.RUNTIME_CONFIG.BACKEND_URL;
 
   useEffect(() => { 
     nodesHandler();
   }, []);
+
+
+  async function refreshHandler() {
+    try{
+      setRefresh(true)
+      const res= await axios.get(`${x}/refresh`, {withCredentials: true});
+      nodesHandler()
+      setRefresh(false)
+    }catch (error){
+      console.error("Error fetching nodes:", error);
+      setError(error.message);
+      setLoading(false);
+      if (error.response?.status === 401) {
+        navigate("/overview");
+      }
+
+    }
+  }
 
   async function nodesHandler() {
     try {
@@ -61,7 +81,7 @@ function Nodes() {
             <div className="error-icon">⚠</div>
             <h2>Error Loading Data</h2>
             <p>{error}</p>
-            <button className="retry-btn" onClick={nodesHandler}>Retry</button>
+            <button className="retry-btn" onClick={refreshHandler}>Retry</button>
           </div>
         </div>
       </div>

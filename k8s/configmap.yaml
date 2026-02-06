@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configmap-mon
+data:
+  WITH_INGRESS: "/api"
+  BACKEND_URL: "/api"

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"os"
 
 	"github.com/google/uuid"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,6 +15,7 @@ import (
 
 var allowedOrigins = map[string]bool{
 	"http://localhost:3000": true,
+	os.Getenv("CLIENT_IP"):  true,
 	"http://localhost:80":   true,
 }
 
@@ -51,13 +53,12 @@ func EnableCors(w http.ResponseWriter, r *http.Request, origin string) {
 	}
 }
 
-func (s *Server) OverviewHandler(w http.ResponseWriter, r *http.Request) {
-	// get
+func (s *Server) RefreshHandler(w http.ResponseWriter, r *http.Request) {
 	origin := r.Header.Get("Origin")
 	EnableCors(w, r, origin)
 
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		http.Error(w, "method not allpowed", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -84,16 +85,70 @@ func (s *Server) OverviewHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.OverviewStore[configID] = overview
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "yay",
+	})
+
+}
+
+func (s *Server) OverviewHandler(w http.ResponseWriter, r *http.Request) {
+	// get
+	origin := r.Header.Get("Origin")
+	EnableCors(w, r, origin)
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// session, err := s.Store.Get(r, "k8s-config-session")
+	// if err != nil {
+	// 	http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
+
+	// auth, ok := session.Values["authenticated"].(bool)
+	// if !ok || !auth {
+	// 	http.Error(w, "not authenticated", http.StatusUnauthorized)
+	// 	return
+
+	// }
+
+	// configID := session.Values["id"].(string)
+	// restConfig := s.ConfigStore[configID]
+
+	// overview, err := GetOverview(restConfig)
+
+	// if err != nil {
+	// 	http.Error(w, "error getting whatever it is that u wanted "+err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
+	// s.OverviewStore[configID] = overview
+
+	session, err := s.Store.Get(r, "k8s-config-session")
+	if err != nil {
+		http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	sid, ok := session.Values["id"].(string)
+	if !ok {
+		http.Error(w, "no session id", http.StatusUnauthorized)
+		return
+	}
+
+	overview := s.OverviewStore[sid]
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"totalNodes":   overview.Nodes.TotalNodes,
 		"runningNodes": overview.Nodes.RunningNodes,
-		"totalPods":    overview.Pods.TotalPods,
-		"runningPods":  overview.Pods.RunningPods,
-		"namespaces":   overview.NameSpace.TotalNamespaces,
-		"services":     overview.Services.Totalservices,
-		"totalIngress": overview.Ingress.TotalIngress,
-		"totalSecrets": overview.Secrets.TotalSecrets,
+		"pods":         overview.Pods,
+
+		"namespaces": overview.NameSpace,
+
+		"services":     overview.Services,
+		"totalIngress": overview.Ingress,
+		"totalSecrets": overview.Secrets,
 	})
 
 }
@@ -167,6 +222,8 @@ func (s *Server) ConfigHandler(w http.ResponseWriter, r *http.Request) {
 	session.Values["id"] = configID
 
 	session.Values["authenticated"] = true
+	overview, err := GetOverview(c)
+	s.OverviewStore[configID] = overview
 
 	err = session.Save(r, w)
 	if err != nil {
@@ -210,6 +267,8 @@ func (s *Server) PodsHandler(w http.ResponseWriter, r *http.Request) {
 
 	ov := s.OverviewStore[sid]
 	pods := ov.Pods
+	ns_list := ov.NameSpace.NameSpaceList
+	pods.NamespaceList = ns_list
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"pods": pods,

@@ -8,12 +8,35 @@ function Overview() {
   const navigate = useNavigate();
   const [overview, setOverview] = useState(null);
   const [loading, setLoading] = useState(true); 
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null); 
   const [activeNav, setActiveNav] = useState('overview');
+  const [namespace, setNameSpace] = useState('default');
 
   useEffect(() => { 
     overviewHandler();
   }, []);
+
+  async function refreshHandler(){
+    try{
+      setRefreshing(true);
+      // Call refresh endpoint to update backend cache
+      await axios.get(`${x}/refresh`, {
+        withCredentials: true
+      });
+     
+      // Fetch updated data
+      await overviewHandler();
+      setRefreshing(false);
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+      setError(error.message);
+      setRefreshing(false);
+      if (error.response?.status === 401) {
+        navigate("/");
+      }
+    }
+  }
 
   async function overviewHandler() {
     try {
@@ -24,12 +47,13 @@ function Overview() {
       const o = new Map();
       o.set("totalNodes", res.data.totalNodes);
       o.set("runningNodes", res.data.runningNodes);
-      o.set("totalPods", res.data.totalPods);
-      o.set("runningPods", res.data.runningPods);
-      o.set("namespace", res.data.namespace);
-      o.set("services", res.data.services);
-      o.set("totalIngress", res.data.totalIngress);
-      o.set("totalSecrets", res.data.totalSecrets);
+      o.set("totalPods", res.data.pods.total); // map[namespace]int
+      o.set("runningPods", res.data.pods.running); // map[namespace]int
+      o.set("namespace", res.data.namespaces.total); // int
+      o.set("namespacelist", res.data.namespaces.namespacelist); // [string]
+      o.set("services", res.data.services.total); // map[namespace]int
+      o.set("totalIngress", res.data.totalIngress.total); // map[namespace]int
+      o.set("totalSecrets", res.data.totalSecrets.total); // map[namespace]int
       setOverview(o); 
       setLoading(false);
     } catch (error) {
@@ -47,10 +71,14 @@ function Overview() {
     navigate(path);
   };
 
+  const handleNS = (ns) => {
+    setNameSpace(ns);
+  };
+
   if (loading) {
     return (
       <div className="dashboard-container">
-        <Sidebar activeNav={activeNav} onNavigate={handleNavigation} />
+        <Sidebar activeNav={activeNav} onNavigate={handleNavigation}/>
         <div className="main-content">
           <div className="loading-container">
             <div className="spinner"></div>
@@ -70,7 +98,7 @@ function Overview() {
             <div className="error-icon">⚠</div>
             <h2>Error Loading Data</h2>
             <p>{error}</p>
-            <button className="retry-btn" onClick={overviewHandler}>Retry</button>
+            <button className="retry-btn" onClick={refreshHandler}>Retry</button>
           </div>
         </div>
       </div>
@@ -91,16 +119,27 @@ function Overview() {
     );
   }
 
-  const totalPods = overview.get("totalPods") || 0;
-  const runningPods = overview.get("runningPods") || 0;
+  // Get namespace data
+  const totalPodsMap = overview.get("totalPods"); // map[string]int
+  const runningPodsMap = overview.get("runningPods"); // map[string]int
+  const totalServicesMap = overview.get("services"); // map[string]int
+  const totalIngressMap = overview.get("totalIngress"); // map[string]int
+  const totalSecretsMap = overview.get("totalSecrets"); // map[string]int
+  
+  const namespaceList = overview.get("namespacelist"); // [string]
+
+  // values for selected namespace
+  const totalPods = totalPodsMap?.[namespace] || 0;
+  const runningPods = runningPodsMap?.[namespace] || 0;
   const unavailablePods = totalPods - runningPods;
+  
+  const totalServices = totalServicesMap?.[namespace] || 0;
+  const totalIngress = totalIngressMap?.[namespace] || 0;
+  const totalSecrets = totalSecretsMap?.[namespace] || 0;
 
-  const totalNodes = overview.get("totalNodes") || 0;
-  const runningNodes = overview.get("runningNodes") || 0;
-  const unavailableNodes = totalNodes - runningNodes;
-
-  const totalServices = overview.get("services") || 0;
-  const totalIngress = overview.get("totalIngress") || 0;
+  const totalNodes = overview.get("totalNodes");
+  const runningNodes = overview.get("runningNodes");
+  const unavailableNodes = totalNodes - runningNodes; 
 
   return (
     <div className="dashboard-container">
@@ -109,9 +148,41 @@ function Overview() {
       <div className="main-content">
         <div className="header">
           <h1>Cluster Overview</h1>
-          <div className="namespace-badge">
-            <span className="badge-label">Namespace:</span>
-            <span className="badge-value">{overview.get("namespace") || "default"}</span>
+          <div className="header-controls">
+            <div className="namespace-selector">
+              <label htmlFor="namespace-select" className="namespace-label">
+                Namespace:
+              </label>
+              <select
+                id="namespace-select"
+                className="namespace-dropdown"
+                value={namespace}
+                onChange={(e) => handleNS(e.target.value)}
+              >
+                {namespaceList && namespaceList.map((ns) => (
+                  <option key={ns} value={ns}>
+                    {ns}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button 
+              className={`refresh-btn ${refreshing ? 'refreshing' : ''}`}
+              onClick={refreshHandler}
+              disabled={refreshing}
+              title="Refresh cluster data"
+            >
+              <svg 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2"
+                className="refresh-icon"
+              >
+                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+              </svg>
+              {refreshing ? 'Refreshing...' : 'Refresh'}
+            </button>
           </div>
         </div>
 
@@ -312,7 +383,7 @@ function Overview() {
             <div className="info-icon">🔐</div>
             <div className="info-content">
               <span className="info-label">Secrets</span>
-              <span className="info-value">{overview.get("totalSecrets") || 0}</span>
+              <span className="info-value">{totalSecrets}</span>
             </div>
           </div>
         </div>
@@ -321,7 +392,7 @@ function Overview() {
   );
 }
 
-function Sidebar({ activeNav, onNavigate }) {
+function Sidebar({ activeNav, onNavigate}) {
   return (
     <div className="sidebar">
       <div className="sidebar-header">

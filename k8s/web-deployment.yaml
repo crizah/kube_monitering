@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-deployment-monitering
+  labels:
+    app: web-mon
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web-mon
+  template:
+    metadata:
+      labels:
+        app: web-mon
+    spec:
+      containers:
+      - name: web-mon
+        image: shaizah/kube:kube-monitering-web
+        ports:
+        - containerPort: 80
+        envFrom:
+          configMapRef:
+          name: configmap-mon
+        
