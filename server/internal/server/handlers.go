@@ -19,23 +19,6 @@ var allowedOrigins = map[string]bool{
 	"http://localhost:80":   true,
 }
 
-// func (s *Server) TestHandler(w http.ResponseWriter, r *http.Request) {
-// 	origin := r.Header.Get("Origin")
-// 	EnableCors(w, r, origin)
-
-// 	var req struct {
-// 		Yes string `json:"yes"`
-// 	}
-
-// 	json.NewDecoder(r.Body).Decode(&req)
-// 	fmt.Println(req.Yes)
-
-// 	json.NewEncoder(w).Encode(map[string]string{
-// 		"msg": "yay",
-// 	})
-
-// }
-
 func EnableCors(w http.ResponseWriter, r *http.Request, origin string) {
 	if allowedOrigins[origin] {
 		w.Header().Set("Access-Control-Allow-Origin", origin)
@@ -100,30 +83,6 @@ func (s *Server) OverviewHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-
-	// session, err := s.Store.Get(r, "k8s-config-session")
-	// if err != nil {
-	// 	http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
-	// 	return
-	// }
-
-	// auth, ok := session.Values["authenticated"].(bool)
-	// if !ok || !auth {
-	// 	http.Error(w, "not authenticated", http.StatusUnauthorized)
-	// 	return
-
-	// }
-
-	// configID := session.Values["id"].(string)
-	// restConfig := s.ConfigStore[configID]
-
-	// overview, err := GetOverview(restConfig)
-
-	// if err != nil {
-	// 	http.Error(w, "error getting whatever it is that u wanted "+err.Error(), http.StatusInternalServerError)
-	// 	return
-	// }
-	// s.OverviewStore[configID] = overview
 
 	session, err := s.Store.Get(r, "k8s-config-session")
 	if err != nil {
@@ -308,11 +267,7 @@ func (s *Server) IngressHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) NodesHandler(w http.ResponseWriter, r *http.Request) {
-	// kubectl get pods
-	// logs
-	// kubectl get pods -o wide
 
-	// get
 	origin := r.Header.Get("Origin")
 	EnableCors(w, r, origin)
 
@@ -365,8 +320,10 @@ func (s *Server) SVCHandler(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-
-	svc := s.OverviewStore[sid].Services
+	ov := s.OverviewStore[sid]
+	svc := ov.Services
+	ns_list := ov.NameSpace.NameSpaceList
+	svc.NameSpaceList = ns_list
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"services": svc,

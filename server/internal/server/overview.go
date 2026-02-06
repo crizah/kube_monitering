@@ -13,6 +13,77 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+// ingress
+// {
+//     totalIngress: int,
+//     ingress: [
+//         {
+//             name: string,
+//             namespace: string,
+//             hosts: string[],       // ["example.com", "*.example.com"]
+//             address: string,       // load balancer address
+//             ports: string,         // "80, 443"
+//             age: string,
+//             rules: [               // detailed rules
+//                 {
+//                     host: string,
+//                     paths: [
+//                         {
+//                             path: string,
+//                             pathType: string,
+//                             backend: string  // service name
+//                         }
+//                     ]
+//                 }
+//             ]
+//         }
+//     ]
+// }
+
+// deployments
+// {
+//     totalDeployments: int,
+//     deployments: [
+//         {
+//             name: string,
+//             namespace: string,
+//             ready: string,         // "3/3" (ready/desired replicas)
+//             upToDate: int,
+//             available: int,
+//             age: string,
+//             containers: string[],  // container names
+//             images: string[]       // container images
+//         }
+//     ]
+// }
+
+// configmaps
+// {
+//     totalConfigMaps: int,
+//     configMaps: [
+//         {
+//             name: string,
+//             namespace: string,
+//             dataCount: int,        // number of key-value pairs
+//             age: string
+//         }
+//     ]
+// }
+
+// secrets
+// {
+//     totalSecrets: int,
+//     secrets: [
+//         {
+//             name: string,
+//             namespace: string,
+//             type: string,          // Opaque, kubernetes.io/tls, etc.
+//             dataCount: int,        // number of secret keys
+//             age: string
+//         }
+//     ]
+// }
+
 type Nodes struct {
 	TotalNodes   int          `json:"total"`
 	RunningNodes int          `json:"running"`
@@ -43,8 +114,9 @@ type Container struct {
 }
 
 type Port struct {
-	Port     int    `json:"port"`
-	Protocol string `json:"protocol"`
+	Port       int    `json:"port"`
+	TargetPort int    `json:"targetport"`
+	Protocol   string `json:"protocol"`
 }
 
 type Pods struct {
@@ -74,9 +146,20 @@ type Ingress struct {
 }
 
 type Services struct {
-	Totalservices  map[string]int             `json:"total"`
-	RunningIngress map[string]int             `json:"running"`
-	ServiceList    map[string]*v1.ServiceList `json:"services"`
+	Totalservices map[string]int `json:"total"`
+	NameSpaceList []string       `json:"namespacelist"`
+	ServiceList   []*ServiceInfo `json:"services"`
+}
+
+type ServiceInfo struct {
+	Name       string            `json:"name"`
+	Namespace  string            `json:"namespace"`
+	Type       string            `json:"type"`
+	Selector   map[string]string `json:"selector"`
+	ClusterIP  []string          `json:"clusterip"`
+	ExternalIP []string          `json:"externalip"`
+	Ports      []*Port           `json:"ports"`
+	Age        string            `json:"age"`
 }
 
 type NameSpace struct {
@@ -86,7 +169,7 @@ type NameSpace struct {
 }
 
 type Secrets struct {
-	TotalSecrets int                       `json:"total"`
+	TotalSecrets map[string]int            `json:"total"`
 	Secrets      map[string]*v1.SecretList `json:"secrets"`
 }
 
@@ -384,23 +467,53 @@ func getPods(cs *kubernetes.Clientset, namespaces *v1.NamespaceList) (*Pods, err
 }
 
 func getServices(cs *kubernetes.Clientset, namespaces *v1.NamespaceList) (*Services, error) {
-	length := 0
+
 	total := make(map[string]int)
-	// running := make(map[string]int)
-	Svc := make(map[string]*v1.ServiceList)
+	// ser := make(map[string]*v1.ServiceList)
+	Svc := make([]*ServiceInfo, 0)
 	for _, ns := range namespaces.Items {
+
 		l := 0
-		// r := 0
+
 		svc, err := cs.CoreV1().Services(ns.Name).List(context.Background(), metav1.ListOptions{})
 		if err != nil {
 			return nil, err
 		}
+
+		for _, ser := range svc.Items {
+
+			// age
+			duration := time.Since(ser.CreationTimestamp.Time)
+			age := strconv.FormatFloat(duration.Hours(), 'f', -1, 64)
+
+			// ports
+			var ports []*Port
+			for _, port := range ser.Spec.Ports {
+				ports = append(ports, &Port{
+					Port:       int(port.Port),
+					TargetPort: int(port.TargetPort.IntVal),
+					Protocol:   string(port.Protocol),
+				})
+			}
+
+			x := &ServiceInfo{
+				Name:       ser.Name,
+				Namespace:  ser.Namespace,
+				Age:        age,
+				ClusterIP:  ser.Spec.ClusterIPs,
+				Type:       string(ser.Spec.Type),
+				Selector:   ser.Spec.Selector,
+				ExternalIP: ser.Spec.ExternalIPs,
+			}
+
+			Svc = append(Svc, x)
+
+		}
+
 		l = l + len(svc.Items)
+		// ser[ns.Name] = svc
 
-		Svc[ns.Name] = svc
 		total[ns.Name] = l
-
-		length = length + len(svc.Items)
 
 	}
 
@@ -431,18 +544,23 @@ func getIngress(cs *kubernetes.Clientset, namespace *v1.NamespaceList) (*Ingress
 func getSecrets(cs *kubernetes.Clientset, namespace *v1.NamespaceList) (*Secrets, error) {
 	l := 0
 
+	x := make(map[string]int)
+
 	Sec := make(map[string]*v1.SecretList)
+	length := 0
 	for _, ns := range namespace.Items {
 		sec, err := cs.CoreV1().Secrets(ns.Name).List(context.Background(), metav1.ListOptions{})
 		if err != nil {
 			return nil, err
 		}
+		length = length + len(sec.Items)
+		x[ns.Name] = length
 
 		Sec[ns.Name] = sec
 		l = l + len(sec.Items)
 
 	}
 
-	return &Secrets{TotalSecrets: l, Secrets: Sec}, nil
+	return &Secrets{TotalSecrets: x, Secrets: Sec}, nil
 
 }

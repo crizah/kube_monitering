@@ -278,7 +278,7 @@ function Pods(){
                       </td>
                       <td className="ns-cell">{pod.namespace}</td>
                       <td className="restarts-cell">{pod.restarts}</td>
-                      <td className="age-cell">{pod.age}</td>
+                      <td className="age-cell">{pod.age} </td>
                       <td>
                         <span className="node-badge">{pod.node || "<none>"}</span>
                       </td>
@@ -309,9 +309,10 @@ function Pods(){
                                     <div className="container-body">
                                       <div className="container-info-item">
                                         <span className="info-label">Image:</span>
-                                        <span className="info-value image-value" title={container.image}>
+                                        {container.image}
+                                        {/* <span className="info-value image-value" title={container.image}>
                                           {container.image}
-                                        </span>
+                                        </span> */}
                                       </div>
                                       {container.ports && container.ports.length > 0 && (
                                         <div className="container-info-item">
