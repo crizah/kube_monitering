@@ -7,38 +7,10 @@ import (
 	"time"
 
 	v1 "k8s.io/api/core/v1"
-	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
-
-// ingress
-// {
-//     totalIngress: int,
-//     ingress: [
-//         {
-//             name: string,
-//             namespace: string,
-//             hosts: string[],       // ["example.com", "*.example.com"]
-//             address: string,       // load balancer address
-//             ports: string,         // "80, 443"
-//             age: string,
-//             rules: [               // detailed rules
-//                 {
-//                     host: string,
-//                     paths: [
-//                         {
-//                             path: string,
-//                             pathType: string,
-//                             backend: string  // service name
-//                         }
-//                     ]
-//                 }
-//             ]
-//         }
-//     ]
-// }
 
 // deployments
 // {
@@ -65,20 +37,6 @@ import (
 //             name: string,
 //             namespace: string,
 //             dataCount: int,        // number of key-value pairs
-//             age: string
-//         }
-//     ]
-// }
-
-// secrets
-// {
-//     totalSecrets: int,
-//     secrets: [
-//         {
-//             name: string,
-//             namespace: string,
-//             type: string,          // Opaque, kubernetes.io/tls, etc.
-//             dataCount: int,        // number of secret keys
 //             age: string
 //         }
 //     ]
@@ -140,9 +98,37 @@ type PodsInfo struct {
 }
 
 type Ingress struct {
-	TotalIngress   map[string]int                       `json:"total"`
-	RunningIngress map[string]int                       `json:"running"`
-	IngressList    map[string]*networkingv1.IngressList `json:"ingress"`
+	TotalIngress   map[string]int `json:"total"`
+	RunningIngress map[string]int `json:"running"`
+	// IngressListfr  map[string]*networkingv1.IngressList `json:"ingressfr"`
+	IngressList   []*IngressInfo `json:"ingress"`
+	NameSpaceList []string       `json:"namespacelist"`
+}
+
+type IngressInfo struct {
+	Name      string   `json:"name"`
+	Namespace string   `json:"namespace"`
+	Hosts     []string `json:"hosts"`
+	Address   string   `json:"address"`
+
+	Age   string  `json:"age"`
+	Rules []*Rule `json:"rules"`
+}
+
+type Rule struct {
+	Host  string  `json:"host"`
+	Paths []*Path `json:"paths"`
+}
+
+type Path struct {
+	Path     string   `json:"path"`
+	PathType string   `json:"pathtype"`
+	Backend  *Backend `json:"backend"`
+}
+
+type Backend struct {
+	Name string `json:"name"`
+	Port string `json:"ports"`
 }
 
 type Services struct {
@@ -169,8 +155,18 @@ type NameSpace struct {
 }
 
 type Secrets struct {
-	TotalSecrets map[string]int            `json:"total"`
-	Secrets      map[string]*v1.SecretList `json:"secrets"`
+	TotalSecrets map[string]int `json:"total"`
+
+	Secrets       []*SecretsInfo `json:"secrets"`
+	NameSpaceList []string       `json:"namespacelist"`
+}
+
+type SecretsInfo struct {
+	Name      string `json:"name"`
+	NameSpace string `json:"namespace"`
+	Type      string `json:"type"`      // Opaque, kubernetes.io/tls, etc.
+	DataCount int    `json:"datacount"` // number of secret keys
+	Age       string `json:"age"`
 }
 
 type Overview struct {
@@ -365,7 +361,6 @@ func getPods(cs *kubernetes.Clientset, namespaces *v1.NamespaceList) (*Pods, err
 	runPods := make(map[string]int)
 
 	runningPods := 0
-	length := 0 // total pods
 
 	for _, ns := range namespaces.Items {
 		r := 0
@@ -377,7 +372,6 @@ func getPods(cs *kubernetes.Clientset, namespaces *v1.NamespaceList) (*Pods, err
 			return nil, err
 		}
 
-		length = length + len(pods.Items)
 		l = l + len(pods.Items)
 
 		for _, pod := range pods.Items {
@@ -502,6 +496,7 @@ func getServices(cs *kubernetes.Clientset, namespaces *v1.NamespaceList) (*Servi
 				Age:        age,
 				ClusterIP:  ser.Spec.ClusterIPs,
 				Type:       string(ser.Spec.Type),
+				Ports:      ports,
 				Selector:   ser.Spec.Selector,
 				ExternalIP: ser.Spec.ExternalIPs,
 			}
@@ -521,9 +516,10 @@ func getServices(cs *kubernetes.Clientset, namespaces *v1.NamespaceList) (*Servi
 }
 
 func getIngress(cs *kubernetes.Clientset, namespace *v1.NamespaceList) (*Ingress, error) {
-	l := 0
+
 	total := make(map[string]int)
-	Ing := make(map[string]*networkingv1.IngressList)
+	// Ing := make(map[string]*networkingv1.IngressList)
+	ing := make([]*IngressInfo, 0)
 	for _, ns := range namespace.Items {
 		length := 0
 		ingress, err := cs.NetworkingV1().Ingresses(ns.Name).List(context.Background(), metav1.ListOptions{})
@@ -531,36 +527,98 @@ func getIngress(cs *kubernetes.Clientset, namespace *v1.NamespaceList) (*Ingress
 		if err != nil {
 			return nil, err
 		}
+		for _, i := range ingress.Items {
+
+			// age
+			duration := time.Since(i.CreationTimestamp.Time)
+			age := strconv.FormatFloat(duration.Hours(), 'f', -1, 64)
+
+			// rules
+			kitty := make([]*Rule, 0)
+			h := make([]string, 0)
+
+			for _, rule := range i.Spec.Rules {
+				// paths
+				hey := make([]*Path, 0)
+				for _, path := range rule.HTTP.Paths {
+					hey = append(hey, &Path{
+						Path:     path.Path,
+						PathType: string(*path.PathType),
+						Backend: &Backend{
+							Name: path.Backend.Service.Name,
+							Port: path.Backend.Service.Port.Name,
+						},
+					})
+
+				}
+				h = append(h, rule.Host)
+				kitty = append(kitty, &Rule{
+					Host:  rule.Host,
+					Paths: hey,
+				})
+
+			}
+
+			meow := &IngressInfo{
+				Name:      i.Name,
+				Namespace: i.Namespace,
+				Age:       age,
+				Rules:     kitty,
+				Hosts:     h,
+				Address:   i.Status.LoadBalancer.Ingress[0].IP,
+			}
+
+			ing = append(ing, meow)
+
+		}
+
 		length = length + len(ingress.Items)
-		l = l + len(ingress.Items)
-		total[ns.Name] = l
-		Ing[ns.Name] = ingress
+
+		total[ns.Name] = length
+		// Ing[ns.Name] = ingress
 	}
 
-	return &Ingress{TotalIngress: total, IngressList: Ing}, nil
+	return &Ingress{TotalIngress: total, IngressList: ing}, nil
 
 }
 
 func getSecrets(cs *kubernetes.Clientset, namespace *v1.NamespaceList) (*Secrets, error) {
-	l := 0
 
 	x := make(map[string]int)
 
-	Sec := make(map[string]*v1.SecretList)
-	length := 0
+	// Sec := make(map[string]*v1.SecretList)
+	secrets := make([]*SecretsInfo, 0)
+
 	for _, ns := range namespace.Items {
+		length := 0
 		sec, err := cs.CoreV1().Secrets(ns.Name).List(context.Background(), metav1.ListOptions{})
 		if err != nil {
 			return nil, err
 		}
+
+		for _, secret := range sec.Items {
+			// age
+			duration := time.Since(secret.CreationTimestamp.Time)
+			age := strconv.FormatFloat(duration.Hours(), 'f', -1, 64)
+
+			a := &SecretsInfo{
+				Name:      secret.Name,
+				NameSpace: secret.Namespace,
+				Age:       age,
+				Type:      string(secret.Type),
+				DataCount: len(secret.Data),
+			}
+
+			secrets = append(secrets, a)
+		}
+
 		length = length + len(sec.Items)
 		x[ns.Name] = length
 
-		Sec[ns.Name] = sec
-		l = l + len(sec.Items)
+		// Sec[ns.Name] = sec
 
 	}
 
-	return &Secrets{TotalSecrets: x, Secrets: Sec}, nil
+	return &Secrets{TotalSecrets: x, Secrets: secrets}, nil
 
 }

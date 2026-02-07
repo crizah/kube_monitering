@@ -257,8 +257,10 @@ func (s *Server) IngressHandler(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-
-	ingress := s.OverviewStore[sid].Ingress
+	ov := s.OverviewStore[sid]
+	ingress := ov.Services
+	ns_list := ov.NameSpace.NameSpaceList
+	ingress.NameSpaceList = ns_list
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"ingress": ingress,
@@ -355,7 +357,10 @@ func (s *Server) SecretsHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	secrets := s.OverviewStore[sid].Secrets
+	ov := s.OverviewStore[sid]
+	secrets := ov.Secrets
+	ns_list := ov.NameSpace.NameSpaceList
+	secrets.NameSpaceList = ns_list
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"secrets": secrets,

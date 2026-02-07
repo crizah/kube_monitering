@@ -7,11 +7,10 @@ function Services(){
   const [svc, setSVC] = useState(null);
   const [loading, setLoading] = useState(true); 
   const [error, setError] = useState(null); 
-  const [activeNav, setActiveNav] = useState('pods');
+  const [activeNav, setActiveNav] = useState('services');
   const [namespace, setNameSpace] = useState('default');
   const [refreshing, setRefreshing] = useState(false);
-  const [expandedPod, setExpandedPod] = useState(null);
- 
+  
   const navigate = useNavigate();
   const x = process.env.REACT_APP_BACKEND_URL;
 
@@ -58,21 +57,16 @@ function Services(){
 
   const handleNS = (ns) => {
     setNameSpace(ns);
-    setExpandedPod(null); // Close any expanded rows when changing namespace
   };
-
-//   const togglePodExpand = (podIndex) => {
-//     setExpandedPod(expandedPod === podIndex ? null : podIndex);
-//   };
 
   if (loading) {
     return (
-      <div className="svc-container">
+      <div className="services-container">
         <Sidebar activeNav={activeNav} onNavigate={handleNavigation} />
-        <div className="main-content">
-          <div className="loading-container">
-            <div className="spinner"></div>
-            <p>Loading Pods...</p>
+        <div className="services-main-content">
+          <div className="services-loading-container">
+            <div className="services-spinner"></div>
+            <p>Loading Services...</p>
           </div>
         </div>
       </div>
@@ -81,14 +75,14 @@ function Services(){
 
   if (error) {
     return (
-      <div className="svc-container">
+      <div className="services-container">
         <Sidebar activeNav={activeNav} onNavigate={handleNavigation} />
-        <div className="main-content">
-          <div className="error-container">
-            <div className="error-icon">⚠</div>
+        <div className="services-main-content">
+          <div className="services-error-container">
+            <div className="services-error-icon">⚠</div>
             <h2>Error Loading Data</h2>
             <p>{error}</p>
-            <button className="retry-btn" onClick={refreshHandler}>Retry</button>
+            <button className="services-retry-btn" onClick={refreshHandler}>Retry</button>
           </div>
         </div>
       </div>
@@ -97,10 +91,10 @@ function Services(){
 
   if (!svc) {
     return (
-      <div className="svc-container">
+      <div className="services-container">
         <Sidebar activeNav={activeNav} onNavigate={handleNavigation} />
-        <div className="main-content">
-          <div className="no-data-container">
+        <div className="services-main-content">
+          <div className="services-no-data-container">
             <h2>No Data Available</h2>
             <p>Unable to fetch service information</p>
           </div>
@@ -109,26 +103,21 @@ function Services(){
     );
   }
 
-
   const totalsvcMap = svc.total || {};
   const allsvcList = svc.services || [];
   const namespaceList = svc.namespacelist || [];
 
- 
-  const totalSvc= totalsvcMap[namespace] || 0;
- 
-
-  const filteredList = allsvcList.filter(svc=> svc.namespace === namespace);
+  const totalSvc = totalsvcMap[namespace] || 0;
+  const filteredList = allsvcList.filter(service => service.namespace === namespace);
 
   return (
-    <div className="svc-container">
+    <div className="services-container">
       <Sidebar activeNav={activeNav} onNavigate={handleNavigation} />
       
-      <div className="main-content">
-
+      <div className="services-main-content">
         {/* Header Section */}
-        <div className="page-header">
-          <h1>Pods</h1>
+                <div className="page-header">
+          <h1>Services</h1>
           <div className="header-controls">
             <div className="namespace-selector">
               <label htmlFor="namespace-select" className="namespace-label">
@@ -175,190 +164,102 @@ function Services(){
             </button>
           </div>
         </div>
+        
 
         {/* Summary Cards */}
         <div className="summary-cards">
           <div className="summary-card total">
             <div className="summary-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="7" height="7" rx="1"/>
-                <rect x="14" y="3" width="7" height="7" rx="1"/>
-                <rect x="14" y="14" width="7" height="7" rx="1"/>
-                <rect x="3" y="14" width="7" height="7" rx="1"/>
-              </svg>
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16">
+    <g id="SVGRepo_iconCarrier" fill="#00b7ff">
+      <path d="M5 1h6v2H9v1.07c3.392.486 6 3.404 6 6.93H1a7 7 0 0 1 6-6.93V3H5zM15 15v-2H1v2z"></path>
+    </g>
+  </svg>
             </div>
             <div className="summary-content">
               <span className="summary-label">Total Services</span>
               <span className="summary-value">{totalSvc}</span>
             </div>
           </div>
-{/* 
-          <div className="summary-card running">
-            <div className="summary-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </div>
-            <div className="summary-content">
-              <span className="summary-label">Running</span>
-              <span className="summary-value">{runningPods}</span>
-            </div>
-          </div>
-
-          <div className="summary-card unavailable">
-            <div className="summary-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="15" y1="9" x2="9" y2="15"></line>
-                <line x1="9" y1="9" x2="15" y2="15"></line>
-              </svg>
-            </div>
-            <div className="summary-content">
-              <span className="summary-label">Unavailable</span>
-              <span className="summary-value">{unavailablePods}</span>
-            </div>
-          </div> */}
-
-
         </div>
 
         {/* Services Table */}
-        <div className="table-container">
+        <div className="services-table-container">
           <div className="table-header">
             <h2>Service Details</h2>
             <span className="table-count">{filteredList.length} services</span>
           </div>
 
           <div className="table-wrapper">
-            <table className="svc-table">
+            <table className="services-table">
               <thead>
-                {/* type ServiceInfo struct {
-	Name       string            `json:"name"`
-	Namespace  string            `json:"namespace"`
-	Type       string            `json:"type"`
-	Selector   map[string]string `json:"selector"`
-	ClusterIP  []string          `json:"clusterip"`
-	ExternalIP []string          `json:"externalip"`
-	Ports      []*Port           `json:"ports"`
-	Age        string            `json:"age"`
-} */}
                 <tr>
-                  <th></th>
                   <th>Name</th>
-                  <th>Namespace</th>
                   <th>Type</th>
+                  <th>Namespace</th>
                   <th>Age</th>
-                  <th>Selector</th>
                   <th>ClusterIP</th>
                   <th>ExternalIP</th>
                   <th>Ports</th>
+                  <th>Selector</th>
                 </tr>
               </thead>
-
-
-              {/* STOPPED HERE  */}
-
-
-
-
-
               <tbody>
-                {filteredList.map((svc, index) => (
-
-                  <>
-                    <tr 
-                      key={index} 
-                      className={`pod-row ${pod.status === "Running" ? "status-ready" : "status-not-ready"} ${expandedPod === index ? "expanded" : ""}`}
-                      onClick={() => togglePodExpand(index)}
-                    >
-                      <td className="expand-cell">
-                        <button className="expand-btn">
-                          <svg 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            strokeWidth="2"
-                            className={expandedPod === index ? "rotated" : ""}
-                          >
-                            <polyline points="9 18 15 12 9 6"></polyline>
-                          </svg>
-                        </button>
-                      </td>
-                      <td className="pod-name">
-                        <div className="name-cell">
-                          
-                          {pod.name}
+                {filteredList.map((service, index) => (
+                  <tr 
+                    key={index} 
+                    className={`services-row ${service.type === "ClusterIP" ? "type-clusterip" : "type-loadbalancer"}`}
+                  >
+                    <td className="services-name-cell">
+                      <div className="services-name">
+                       
+                        <span>{service.name}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`services-type-badge ${service.type === "ClusterIP" ? "clusterip" : "loadbalancer"}`}>
+                        {service.type}
+                      </span>
+                    </td>
+                    <td className="services-ns-cell">{service.namespace}</td>
+                    <td className="services-age-cell">{service.age}</td>
+                    <td className="services-clusterip-cell">
+                      {service.clusterip && service.clusterip.length > 0 
+                        ? service.clusterip.join(", ") 
+                        : "<none>"}
+                    </td>
+                    <td className="services-externalip-cell">
+                      {service.externalip && service.externalip.length > 0 
+                        ? service.externalip.join(", ") 
+                        : "<none>"}
+                    </td>
+                    <td className="services-ports-cell">
+                      <div className="services-ports-list">
+                        {service.ports && service.ports.length > 0 ? (
+                          service.ports.map((port, portIndex) => (
+                            <span key={portIndex} className="services-port-badge">
+                              {port.port}:{port.targetport}/{port.protocol}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="services-no-ports">-</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="services-selector-cell">
+                      {service.selector && Object.keys(service.selector).length > 0 ? (
+                        <div className="services-selector-list">
+                          {Object.entries(service.selector).map(([key, value], selectorIndex) => (
+                            <span key={selectorIndex} className="services-selector-badge">
+                              {key}={value}
+                            </span>
+                          ))}
                         </div>
-                      </td>
-                      <td>
-                        <span className={`status-badge ${pod.status === "yay" ? "ready" : "not-ready"}`}>
-                          {pod.status}
-                        </span>
-                      </td>
-                      <td className="ns-cell">{pod.namespace}</td>
-                      <td className="restarts-cell">{pod.restarts}</td>
-                      <td className="age-cell">{pod.age} </td>
-                      <td>
-                        <span className="node-badge">{pod.node || "<none>"}</span>
-                      </td>
-                      <td className="ip-cell">{pod.ip}</td>
-                      <td className="containers-cell">
-                        <span className="container-count">
-                          {pod.readycontainer}/{pod.totalcontainer}
-                        </span>
-                      </td>
-                    </tr>
-                    {expandedPod === index && (
-                      <tr key={`${index}-details`} className="pod-details-row">
-                        <td colSpan="9">
-                          <div className="pod-details">
-                            <div className="details-header">
-                              <h3>Containers ({pod.container?.length || 0})</h3>
-                            </div>
-                            <div className="containers-grid">
-                              {pod.container && pod.container.length > 0 ? (
-                                pod.container.map((container, containerIndex) => (
-                                  <div key={containerIndex} className="container-card">
-                                    <div className="container-header">
-                                      
-                                      <div className="container-title">
-                                        <span className="container-name">{container.name}</span>
-                                      </div>
-                                    </div>
-                                    <div className="container-body">
-                                      <div className="container-info-item">
-                                        <span className="info-label">Image:</span>
-                                        {container.image}
-                                        {/* <span className="info-value image-value" title={container.image}>
-                                          {container.image}
-                                        </span> */}
-                                      </div>
-                                      {container.ports && container.ports.length > 0 && (
-                                        <div className="container-info-item">
-                                          <span className="info-label">Ports:</span>
-                                          <div className="ports-list">
-                                            {container.ports.map((port, portIndex) => (
-                                              <span key={portIndex} className="port-badge">
-                                                {port.port}/{port.protocol}
-                                              </span>
-                                            ))}
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                ))
-                              ) : (
-                                <div className="no-containers">
-                                  <p>No container information available</p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </>
+                      ) : (
+                        <span className="services-no-selector">-</span>
+                      )}
+                    </td>
+                  </tr>
                 ))}
               </tbody>
             </table>
@@ -366,34 +267,22 @@ function Services(){
         </div>
 
         {/* Empty State */}
-        {filteredPodsList.length === 0 && (
-          <div className="empty-state">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="3" width="7" height="7" rx="1"/>
-              <rect x="14" y="3" width="7" height="7" rx="1"/>
-              <rect x="14" y="14" width="7" height="7" rx="1"/>
-              <rect x="3" y="14" width="7" height="7" rx="1"/>
-            </svg>
-            <h3>No Pods Found</h3>
-            <p>There are no pods in the "{namespace}" namespace</p>
+        {filteredList.length === 0 && (
+          <div className="services-empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16">
+    <g id="SVGRepo_iconCarrier" fill="#3e555e">
+      <path d="M5 1h6v2H9v1.07c3.392.486 6 3.404 6 6.93H1a7 7 0 0 1 6-6.93V3H5zM15 15v-2H1v2z"></path>
+    </g>
+  </svg>
+            
+            <h3>No Services Found</h3>
+            <p>There are no services in the "{namespace}" namespace</p>
           </div>
         )}
       </div>
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 function Sidebar({ activeNav, onNavigate }) {
   return (
@@ -476,4 +365,4 @@ function Sidebar({ activeNav, onNavigate }) {
 }
 
 
-export {Services}
+export {Services};
