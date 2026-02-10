@@ -54,7 +54,9 @@ function Overview() {
       o.set("services", res.data.services.total); // map[namespace]int
       o.set("totalIngress", res.data.totalIngress.total); // map[namespace]int
       o.set("totalSecrets", res.data.totalSecrets.total); // map[namespace]int
+      o.set("totalConfigMaps", res.data.totalConfigMaps.total);
       setOverview(o); 
+
       setLoading(false);
     } catch (error) {
       console.error("Error fetching overview:", error);
@@ -125,6 +127,7 @@ function Overview() {
   const totalServicesMap = overview.get("services"); // map[string]int
   const totalIngressMap = overview.get("totalIngress"); // map[string]int
   const totalSecretsMap = overview.get("totalSecrets"); // map[string]int
+  const totalConfigMap = overview.get("totalConfigMaps")
   
   const namespaceList = overview.get("namespacelist"); // [string]
 
@@ -136,6 +139,7 @@ function Overview() {
   const totalServices = totalServicesMap[namespace];
   const totalIngress = totalIngressMap[namespace];
   const totalSecrets = totalSecretsMap[namespace];
+  const totalConfigMaps  = totalConfigMap[namespace]
 
   const totalNodes = overview.get("totalNodes");
   const runningNodes = overview.get("runningNodes");
@@ -203,6 +207,7 @@ function Overview() {
 
           {/* pods */}
           <div className="stat-card">
+            
             <div className="stat-header">
               <div className="stat-icon pods-icon">
                  <svg viewBox="0 0 24 24" fill="none" stroke="#6371da" strokeWidth="2">
@@ -356,6 +361,42 @@ function Overview() {
               </div>
             </div>
           </div>
+
+          {/* Confog map */}
+
+
+            <div className="stat-card">
+            <div className="stat-header">
+              <div className="stat-icon configmap-icon">
+                   <svg
+    xmlns="http://www.w3.org/2000/svg"
+    xmlSpace="preserve"
+    id="XMLID_195_"
+    width="200"
+    height="200"
+    fill="#6371da"
+    version="1.1"
+    viewBox="0 0 24 24"
+  >
+    <g id="SVGRepo_iconCarrier">
+      <path
+        id="notes"
+        d="M16.4 24H2V0h20v18.4zM4 22h10v-6h6V2H4v2h16v2H4zm12-4v3.6l3.6-3.6zm-5 0H6v-2h5zm7-4H6v-2h12zm-2-4H6V8h10z"
+      ></path>
+    </g>
+  </svg>
+                 
+              </div>
+              <h3>Config Maps</h3>
+            </div>
+            <div className="stat-body">
+              <div className="stat-main">
+                <span className="stat-number">{totalConfigMaps}</span>
+                <span className="stat-label">Config Maps</span>
+              </div>
+            </div>
+          </div>
+
 
 
 

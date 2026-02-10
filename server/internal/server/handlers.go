@@ -105,9 +105,10 @@ func (s *Server) OverviewHandler(w http.ResponseWriter, r *http.Request) {
 
 		"namespaces": overview.NameSpace,
 
-		"services":     overview.Services,
-		"totalIngress": overview.Ingress,
-		"totalSecrets": overview.Secrets,
+		"services":        overview.Services,
+		"totalIngress":    overview.Ingress,
+		"totalSecrets":    overview.Secrets,
+		"totalConfigMaps": overview.ConfigMaps,
 	})
 
 }
@@ -258,12 +259,76 @@ func (s *Server) IngressHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 	ov := s.OverviewStore[sid]
-	ingress := ov.Services
+	ingress := ov.Ingress
 	ns_list := ov.NameSpace.NameSpaceList
 	ingress.NameSpaceList = ns_list
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"ingress": ingress,
+	})
+
+}
+
+func DelPodHandler(w http.ResponseWriter, r *http.Request) {
+	origin := r.Header.Get("Origin")
+	EnableCors(w, r, origin)
+
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// get data
+	var res struct {
+		PodName string `json:"podname"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&res)
+	if err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	// delete
+	err = s.DeletePod(res.PodName)
+	if err != nil {
+		http.Error(w, "couldnt delere"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// send success
+	json.NewEncoder(w).Encode(map[string]string{
+		"msg": "yay",
+	})
+}
+
+func (s *Server) ConfigMapHandler(w http.ResponseWriter, r *http.Request) {
+	origin := r.Header.Get("Origin")
+	EnableCors(w, r, origin)
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	session, err := s.Store.Get(r, "k8s-config-session")
+	if err != nil {
+		http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	sid, ok := session.Values["id"].(string)
+	if !ok {
+		http.Error(w, "error getting session id ", http.StatusInternalServerError)
+		return
+
+	}
+	ov := s.OverviewStore[sid]
+	m := ov.ConfigMaps
+	ns_list := ov.NameSpace.NameSpaceList
+	m.NameSpaceList = ns_list
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"configmap": m,
 	})
 
 }

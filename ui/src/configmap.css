@@ -1,5 +1,5 @@
 /* Container */
-.ingress-container {
+.secrets-container {
   display: flex;
   min-height: 100vh;
   background: #0f1419;
@@ -7,7 +7,7 @@
 }
 
 /* Sidebar */
-.ingress-sidebar {
+.secrets-sidebar {
   width: 260px;
   background: #1e293b;
   color: white;
@@ -18,12 +18,12 @@
   overflow-y: auto;
 }
 
-.ingress-sidebar-header {
+.secrets-sidebar-header {
   padding: 24px 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.ingress-logo {
+.secrets-logo {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -31,7 +31,7 @@
   font-weight: 700;
 }
 
-.ingress-k8 {
+.secrets-k8 {
   background-image: url('../public/images/k8s.png');
   background-size: contain;
   width: 30px;
@@ -39,12 +39,12 @@
   cursor: pointer;
 }
 
-.ingress-sidebar-nav {
+.secrets-sidebar-nav {
   padding: 20px 12px;
   flex: 1;
 }
 
-.ingress-nav-item {
+.secrets-nav-item {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -61,58 +61,58 @@
   margin-bottom: 4px;
 }
 
-.ingress-nav-item:hover {
+.secrets-nav-item:hover {
   background: rgba(255, 255, 255, 0.1);
   color: white;
 }
 
-.ingress-nav-item.active {
+.secrets-nav-item.active {
   background: #3b82f6;
   color: white;
 }
 
 /* Main Content */
-.ingress-main-content {
+.secrets-main-content {
   flex: 1;
   margin-left: 260px;
   padding: 32px;
 }
 
 /* Page Header */
-.ingress-page-header {
+.secrets-page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 32px;
 }
 
-.ingress-page-header h1 {
+.secrets-page-header h1 {
   font-size: 32px;
   font-weight: 700;
   color: #e6edf3;
   margin: 0;
 }
 
-.ingress-header-controls {
+.secrets-header-controls {
   display: flex;
   align-items: center;
   gap: 16px;
 }
 
 /* Namespace Selector */
-.ingress-namespace-selector {
+.secrets-namespace-selector {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.ingress-namespace-label {
+.secrets-namespace-label {
   font-weight: 600;
   color: #8b949e;
   font-size: 14px;
 }
 
-.ingress-namespace-dropdown {
+.secrets-namespace-dropdown {
   padding: 8px 16px;
   border: 1px solid #30363d;
   border-radius: 8px;
@@ -125,18 +125,18 @@
   min-width: 150px;
 }
 
-.ingress-namespace-dropdown:hover {
+.secrets-namespace-dropdown:hover {
   border-color: #3b82f6;
 }
 
-.ingress-namespace-dropdown:focus {
+.secrets-namespace-dropdown:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 /* Refresh Button */
-.ingress-refresh-btn {
+.secrets-refresh-btn {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -151,36 +151,36 @@
   transition: all 0.2s;
 }
 
-.ingress-refresh-btn:hover:not(:disabled) {
+.secrets-refresh-btn:hover:not(:disabled) {
   background: #2563eb;
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
 }
 
-.ingress-refresh-btn:active:not(:disabled) {
+.secrets-refresh-btn:active:not(:disabled) {
   transform: translateY(0);
 }
 
-.ingress-refresh-btn:disabled {
+.secrets-refresh-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.ingress-refresh-btn svg {
+.secrets-refresh-btn svg {
   width: 16px;
   height: 16px;
 }
 
-.ingress-refresh-icon {
+.secrets-refresh-icon {
   width: 16px;
   height: 16px;
 }
 
-.ingress-refresh-btn.refreshing .ingress-refresh-icon {
-  animation: ingress-spin 1s linear infinite;
+.secrets-refresh-btn.refreshing .secrets-refresh-icon {
+  animation: secrets-spin 1s linear infinite;
 }
 
-@keyframes ingress-spin {
+@keyframes secrets-spin {
   from {
     transform: rotate(0deg);
   }
@@ -190,14 +190,14 @@
 }
 
 /* Summary Cards */
-.ingress-summary-cards {
+.secrets-summary-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 20px;
   margin-bottom: 32px;
 }
 
-.ingress-summary-card {
+.secrets-summary-card {
   background: #161b22;
   border: 1px solid #30363d;
   border-radius: 12px;
@@ -209,13 +209,13 @@
   transition: all 0.2s;
 }
 
-.ingress-summary-card:hover {
+.secrets-summary-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
   border-color: #3b82f6;
 }
 
-.ingress-summary-icon {
+.secrets-summary-icon {
   width: 56px;
   height: 56px;
   border-radius: 12px;
@@ -224,36 +224,36 @@
   justify-content: center;
 }
 
-.ingress-summary-icon svg {
+.secrets-summary-icon svg {
   width: 28px;
   height: 28px;
 }
 
-.ingress-summary-card.total .ingress-summary-icon {
+.secrets-summary-card.total .secrets-summary-icon {
   background: #0f1419;
-  color: #8b5cf6;
+  color: #f59e0b;
 }
 
-.ingress-summary-content {
+.secrets-summary-content {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.ingress-summary-label {
+.secrets-summary-label {
   font-size: 14px;
   color: #8b949e;
   font-weight: 500;
 }
 
-.ingress-summary-value {
+.secrets-summary-value {
   font-size: 32px;
   font-weight: 700;
   color: #e6edf3;
 }
 
 /* Table Container */
-.ingress-table-container {
+.secrets-table-container {
   background: #161b22;
   border: 1px solid #30363d;
   border-radius: 12px;
@@ -261,7 +261,7 @@
   overflow: hidden;
 }
 
-.ingress-table-header {
+.secrets-table-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -269,34 +269,34 @@
   border-bottom: 1px solid #30363d;
 }
 
-.ingress-table-header h2 {
+.secrets-table-header h2 {
   font-size: 21px;
   font-weight: 700;
   color: #e6edf3;
   margin: 0;
 }
 
-.ingress-table-count {
+.secrets-table-count {
   font-size: 14px;
   color: #8b949e;
   font-weight: 500;
 }
 
-.ingress-table-wrapper {
+.secrets-table-wrapper {
   overflow-x: auto;
 }
 
 /* Table */
-.ingress-table {
+.secrets-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.ingress-table thead {
+.secrets-table thead {
   background: #21262d;
 }
 
-.ingress-table th {
+.secrets-table th {
   padding: 16px 20px;
   text-align: left;
   font-size: 13px;
@@ -307,305 +307,95 @@
   white-space: nowrap;
 }
 
-.ingress-table tbody tr.ingress-row {
+.secrets-table tbody tr.secrets-row {
   transition: all 0.2s;
   cursor: pointer;
-  background: rgba(139, 92, 246, 0.03);
+  background: rgba(245, 158, 11, 0.02);
 }
 
-.ingress-table tbody tr.ingress-row:hover {
+.secrets-table tbody tr.secrets-row:hover {
   background: #21262d;
 }
 
-.ingress-table tbody tr.ingress-row.expanded {
-  background: #21262d;
-}
-
-.ingress-table td {
+.secrets-table td {
   padding: 16px 20px;
   font-size: 14px;
   color: #e6edf3;
   vertical-align: middle;
 }
 
-/* Expand Cell */
-.ingress-expand-cell {
-  width: 40px;
-  padding: 16px 12px !important;
-}
-
-.ingress-expand-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  color: #8b949e;
-}
-
-.ingress-expand-btn:hover {
-  color: #3b82f6;
-}
-
-.ingress-expand-btn svg {
-  width: 16px;
-  height: 16px;
-  transition: transform 0.2s;
-}
-
-.ingress-expand-btn svg.rotated {
-  transform: rotate(90deg);
-}
-
 /* Name Cell */
-.ingress-name-cell {
-  min-width: 200px;
+.secrets-name-cell {
+  min-width: 250px;
 }
 
-.ingress-name {
+.secrets-name {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.ingress-name svg {
+.secrets-name svg {
   width: 20px;
   height: 20px;
-  color: #8b5cf6;
+  color: #f59e0b;
   flex-shrink: 0;
 }
 
-.ingress-name span {
+.secrets-name span {
   font-weight: 500;
   color: #ffffff;
+  word-break: break-all;
+}
+
+/* Type Badge */
+.secrets-type-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #21262d;
+  color:  #98aaea;
+  border: 1px solid #30363d;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Cell Specific Styles */
-.ingress-ns-cell {
+.secrets-ns-cell {
   color: #8b949e;
   font-weight: 500;
 }
 
-.ingress-age-cell {
+.secrets-age-cell {
   color: #8b949e;
   white-space: nowrap;
 }
 
-.ingress-address-cell {
-  font-family: monospace;
-  font-size: 13px;
-  color: #8b949e;
-}
-
-.ingress-no-address {
-  color: #8b949e;
-  font-style: italic;
-}
-
-/* Hosts Cell */
-.ingress-hosts-cell {
-  min-width: 200px;
-}
-
-.ingress-hosts-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.ingress-host-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  background: #21262d;
-  color: #8b5cf6;
-  border: 1px solid #30363d;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  font-family: monospace;
-  width: fit-content;
-}
-
-.ingress-no-hosts {
-  color: #8b949e;
-  font-style: italic;
-}
-
-/* Details Row */
-.ingress-details-row {
-  background: #21262d !important;
-}
-
-.ingress-details-row td {
-  padding: 0 !important;
-}
-
-.ingress-details {
-  padding: 24px;
-  animation: ingress-slideDown 0.2s ease-out;
-}
-
-@keyframes ingress-slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.ingress-details-header {
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #30363d;
-}
-
-.ingress-details-header h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #e6edf3;
-  margin: 0;
-}
-
-/* Rules Container */
-.ingress-rules-container {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.ingress-rule-card {
-  background: #161b22;
-  border: 1px solid #30363d;
-  border-radius: 8px;
-  padding: 16px;
-}
-
-.ingress-rule-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #30363d;
-}
-
-.ingress-rule-header svg {
-  width: 20px;
-  height: 20px;
-  color: #8b5cf6;
-}
-
-.ingress-rule-host {
-  font-size: 14px;
-  color: #8b949e;
-}
-
-.ingress-rule-host strong {
-  color: #e6edf3;
-  font-family: monospace;
-}
-
-/* Paths Container */
-.ingress-paths-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.ingress-path-item {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 12px;
-  background: #21262d;
-  border: 1px solid #30363d;
-  border-radius: 6px;
-}
-
-.ingress-path-info {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 150px;
-}
-
-.ingress-path-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  background: #0f1419;
-  color: #ffffff;
-  border: 1px solid #30363d;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  font-family: monospace;
-  width: fit-content;
-}
-
-.ingress-pathtype-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  background: #8b5cf6;
-  color: #ffffff;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  width: fit-content;
-}
-
-.ingress-arrow {
-  color: #8b949e;
-  font-size: 20px;
-  font-weight: bold;
-}
-
-.ingress-backend-info {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1;
-}
-
-.ingress-backend-service {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #e6edf3;
-  font-weight: 500;
-}
-
-.ingress-backend-service svg {
-  width: 16px;
-  height: 16px;
-  color: #3b82f6;
-}
-
-.ingress-backend-port {
-  font-size: 12px;
-  color: #8b949e;
-  font-family: monospace;
-}
-
-.ingress-no-paths,
-.ingress-no-rules {
+.secrets-datacount-cell {
   text-align: center;
-  padding: 16px;
-  color: #8b949e;
-  font-style: italic;
+}
+
+.secrets-datacount-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  background: #21262d;
+  color: #98aaea;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  min-width: 40px;
 }
 
 /* Empty State */
-.ingress-empty-state {
+.secrets-empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -618,28 +408,28 @@
   margin-top: 32px;
 }
 
-.ingress-empty-state svg {
+.secrets-empty-state svg {
   width: 64px;
   height: 64px;
   color: #8b949e;
   margin-bottom: 16px;
 }
 
-.ingress-empty-state h3 {
+.secrets-empty-state h3 {
   font-size: 20px;
   font-weight: 600;
   color: #e6edf3;
   margin: 0 0 8px 0;
 }
 
-.ingress-empty-state p {
+.secrets-empty-state p {
   font-size: 14px;
   color: #8b949e;
   margin: 0;
 }
 
 /* Loading State */
-.ingress-loading-container {
+.secrets-loading-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -647,23 +437,23 @@
   min-height: 400px;
 }
 
-.ingress-spinner {
+.secrets-spinner {
   width: 48px;
   height: 48px;
   border: 4px solid #30363d;
   border-top-color: #3b82f6;
   border-radius: 50%;
-  animation: ingress-spin 0.8s linear infinite;
+  animation: secrets-spin 0.8s linear infinite;
 }
 
-.ingress-loading-container p {
+.secrets-loading-container p {
   margin-top: 16px;
   font-size: 14px;
   color: #8b949e;
 }
 
 /* Error State */
-.ingress-error-container {
+.secrets-error-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -672,25 +462,25 @@
   text-align: center;
 }
 
-.ingress-error-icon {
+.secrets-error-icon {
   font-size: 64px;
   margin-bottom: 16px;
 }
 
-.ingress-error-container h2 {
+.secrets-error-container h2 {
   font-size: 24px;
   font-weight: 700;
   color: #e6edf3;
   margin: 0 0 8px 0;
 }
 
-.ingress-error-container p {
+.secrets-error-container p {
   font-size: 14px;
   color: #8b949e;
   margin: 0 0 24px 0;
 }
 
-.ingress-retry-btn {
+.secrets-retry-btn {
   padding: 10px 24px;
   background: #3b82f6;
   color: white;
@@ -702,18 +492,18 @@
   transition: all 0.2s;
 }
 
-.ingress-retry-btn:hover {
+.secrets-retry-btn:hover {
   background: #2563eb;
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
 }
 
-.ingress-retry-btn:active {
+.secrets-retry-btn:active {
   transform: translateY(0);
 }
 
 /* No Data State */
-.ingress-no-data-container {
+.secrets-no-data-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -722,14 +512,14 @@
   text-align: center;
 }
 
-.ingress-no-data-container h2 {
+.secrets-no-data-container h2 {
   font-size: 24px;
   font-weight: 700;
   color: #e6edf3;
   margin: 0 0 8px 0;
 }
 
-.ingress-no-data-container p {
+.secrets-no-data-container p {
   font-size: 14px;
   color: #8b949e;
   margin: 0;
@@ -737,75 +527,62 @@
 
 /* Responsive Design */
 @media (max-width: 1024px) {
-  .ingress-summary-cards {
+  .secrets-summary-cards {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
   
-  .ingress-main-content {
+  .secrets-main-content {
     padding: 24px;
-  }
-
-  .ingress-path-item {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .ingress-arrow {
-    transform: rotate(90deg);
   }
 }
 
 @media (max-width: 768px) {
-  .ingress-sidebar {
+  .secrets-sidebar {
     width: 220px;
   }
   
-  .ingress-main-content {
+  .secrets-main-content {
     margin-left: 220px;
     padding: 16px;
   }
   
-  .ingress-page-header {
+  .secrets-page-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
   }
   
-  .ingress-header-controls {
+  .secrets-header-controls {
     width: 100%;
     flex-wrap: wrap;
   }
   
-  .ingress-summary-cards {
+  .secrets-summary-cards {
     grid-template-columns: 1fr;
   }
   
-  .ingress-table-wrapper {
+  .secrets-table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
 }
 
 @media (max-width: 640px) {
-  .ingress-sidebar {
+  .secrets-sidebar {
     transform: translateX(-100%);
   }
   
-  .ingress-main-content {
+  .secrets-main-content {
     margin-left: 0;
   }
   
-  .ingress-table th,
-  .ingress-table td {
+  .secrets-table th,
+  .secrets-table td {
     padding: 12px 16px;
     font-size: 13px;
   }
   
-  .ingress-summary-value {
+  .secrets-summary-value {
     font-size: 28px;
-  }
-
-  .ingress-details {
-    padding: 16px;
   }
 }

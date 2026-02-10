@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	networkingv1 "k8s.io/api/networking/v1"
+
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -25,19 +27,6 @@ import (
 //             age: string,
 //             containers: string[],  // container names
 //             images: string[]       // container images
-//         }
-//     ]
-// }
-
-// configmaps
-// {
-//     totalConfigMaps: int,
-//     configMaps: [
-//         {
-//             name: string,
-//             namespace: string,
-//             dataCount: int,        // number of key-value pairs
-//             age: string
 //         }
 //     ]
 // }
@@ -101,8 +90,9 @@ type Ingress struct {
 	TotalIngress   map[string]int `json:"total"`
 	RunningIngress map[string]int `json:"running"`
 	// IngressListfr  map[string]*networkingv1.IngressList `json:"ingressfr"`
-	IngressList   []*IngressInfo `json:"ingress"`
-	NameSpaceList []string       `json:"namespacelist"`
+	IngressList   []*IngressInfo                       `json:"ingress"`
+	Ingress       map[string]*networkingv1.IngressList `json:"fr"`
+	NameSpaceList []string                             `json:"namespacelist"`
 }
 
 type IngressInfo struct {
@@ -128,7 +118,7 @@ type Path struct {
 
 type Backend struct {
 	Name string `json:"name"`
-	Port string `json:"ports"`
+	Port int    `json:"ports"`
 }
 
 type Services struct {
@@ -168,15 +158,43 @@ type SecretsInfo struct {
 	DataCount int    `json:"datacount"` // number of secret keys
 	Age       string `json:"age"`
 }
+type ConfigMaps struct {
+	Total         map[string]int   `json:"total"`
+	Confs         []*ConfigMapInfo `json:"confs"`
+	NameSpaceList []string         `json:"namespacelist"`
+}
+
+type ConfigMapInfo struct {
+	Name      string `json:"name"`
+	NameSpace string `json:"namespace"`
+	DataCount int    `json:"datacount"`
+	Age       string `json:"age"`
+}
+
+// type Deployments struct {
+// 	Total map[string]int `json:"total"`
+
+// 	DeploymentList []*DeploymentInfo `json:"deployments"`
+// }
+
+// type DeploymentInfo struct {
+// 	Name       string
+// 	NameSpace  string
+// 	Ready      string
+// 	Age        string
+// 	Containers []*Container
+// }
 
 type Overview struct {
-	Nodes     *Nodes     `json:"nodes"`
-	Pods      *Pods      `json:"pods"`
-	Services  *Services  `json:"services"`
-	NameSpace *NameSpace `json:"namespaces"`
-	Ingress   *Ingress   `json:"ingress"`
-	Secrets   *Secrets   `json:"secrets"`
-	Errors    []error
+	Nodes      *Nodes      `json:"nodes"`
+	Pods       *Pods       `json:"pods"`
+	Services   *Services   `json:"services"`
+	NameSpace  *NameSpace  `json:"namespaces"`
+	Ingress    *Ingress    `json:"ingress"`
+	Secrets    *Secrets    `json:"secrets"`
+	ConfigMaps *ConfigMaps `json:"configmaps"`
+	// Deployments *Deployments `json:"deployments"`
+	Errors []error
 }
 
 func GetOverview(c *rest.Config) (*Overview, error) {
@@ -192,7 +210,7 @@ func GetOverview(c *rest.Config) (*Overview, error) {
 
 	var wg sync.WaitGroup
 	var mux sync.Mutex
-	wg.Add(5)
+	wg.Add(6)
 	n := make([]string, 0)
 	for _, ns := range namespaces.Items {
 		n = append(n, ns.Name)
@@ -262,6 +280,18 @@ func GetOverview(c *rest.Config) (*Overview, error) {
 			ov.Errors = append(ov.Errors, err)
 		} else {
 			ov.Secrets = sec
+		}
+
+	}()
+	go func() {
+		defer wg.Done()
+		m, err := getConfigMaps(cs, namespaces)
+		mux.Lock()
+		defer mux.Unlock()
+		if err != nil {
+			ov.Errors = append(ov.Errors, err)
+		} else {
+			ov.ConfigMaps = m
 		}
 
 	}()
@@ -527,6 +557,7 @@ func getIngress(cs *kubernetes.Clientset, namespace *v1.NamespaceList) (*Ingress
 		if err != nil {
 			return nil, err
 		}
+
 		for _, i := range ingress.Items {
 
 			// age
@@ -546,7 +577,7 @@ func getIngress(cs *kubernetes.Clientset, namespace *v1.NamespaceList) (*Ingress
 						PathType: string(*path.PathType),
 						Backend: &Backend{
 							Name: path.Backend.Service.Name,
-							Port: path.Backend.Service.Port.Name,
+							Port: int(path.Backend.Service.Port.Number),
 						},
 					})
 
@@ -620,5 +651,46 @@ func getSecrets(cs *kubernetes.Clientset, namespace *v1.NamespaceList) (*Secrets
 	}
 
 	return &Secrets{TotalSecrets: x, Secrets: secrets}, nil
+
+}
+
+func getConfigMaps(cs *kubernetes.Clientset, namespace *v1.NamespaceList) (*ConfigMaps, error) {
+
+	x := make(map[string]int)
+
+	kitty := make([]*ConfigMapInfo, 0)
+	for _, ns := range namespace.Items {
+
+		l := 0
+		m, err := cs.CoreV1().ConfigMaps(ns.Name).List(context.Background(), metav1.ListOptions{})
+		if err != nil {
+			return nil, err
+		}
+
+		for _, meow := range m.Items {
+
+			duration := time.Since(meow.CreationTimestamp.Time)
+			age := strconv.FormatFloat(duration.Hours(), 'f', -1, 64)
+
+			suck := &ConfigMapInfo{
+				Name:      meow.Name,
+				NameSpace: meow.Namespace,
+				Age:       age,
+				DataCount: len(meow.Data),
+			}
+
+			kitty = append(kitty, suck)
+		}
+
+		l = l + len(m.Items)
+		x[ns.Name] = l
+
+	}
+
+	return &ConfigMaps{Total: x, Confs: kitty}, nil
+
+}
+
+func (s *Server) DeletePod(name string) error {
 
 }
