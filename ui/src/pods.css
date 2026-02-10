@@ -458,6 +458,54 @@
 .age-cell {
   color: #64748b;
 }
+.restart-cell {
+  text-align: center;
+  
+  color: #64748b;
+}
+
+.restart-button {
+  text-align: center;
+  color: #2563eb;
+ 
+ 
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: none;
+  background-color: #1f2487;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  user-select: none;
+ 
+
+ 
+  transition: all 0.2s ease;
+}
+
+
+.restart-button:hover {
+  background-color: #004cff;
+  transform: translateY(-1px);
+  
+}
+
+
+.restart-button:active {
+  transform: translateY(0);
+  
+}
+
+
+
+
 
 .ip-cell {
   font-family: monospace;

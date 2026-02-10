@@ -687,6 +687,8 @@ func (s *Server) getConfigMaps(namespace *v1.NamespaceList) (*ConfigMaps, error)
 
 }
 
-// func (s *Server) DeletePod(name string) error {
+func (s *Server) DeletePod(ns string, name string) error {
+	err := s.ClientSet.CoreV1().Pods(ns).Delete(context.Background(), name, metav1.DeleteOptions{})
+	return err
 
-// }
+}

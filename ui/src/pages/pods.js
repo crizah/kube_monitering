@@ -5,6 +5,8 @@ import "../pods.css";
 
 function Pods(){
   const [pods, setPods] = useState(null);
+  // const [pod, setPod] = useState("");
+
   const [loading, setLoading] = useState(true); 
   const [error, setError] = useState(null); 
   const [activeNav, setActiveNav] = useState('pods');
@@ -29,6 +31,28 @@ function Pods(){
       console.error(error);
       setError(error.message);
       setRefreshing(false);
+      if (error.response?.status === 401) {
+        navigate("/overview");
+      }
+    }
+  }
+
+  async function restartHandler(pod, ns){
+    try{
+      setLoading(true);
+      const res = await axios.post(`${x}/restartpod`,{
+        podname : pod,
+        namespace : ns
+      }, { withCredentials: true });
+      // setPods(res.data.pods);
+
+      refreshHandler();
+      setLoading(false);
+
+    }catch (error) {
+      console.error("Error resytarting pod", error);
+      setError(error.message);
+      setLoading(false);
       if (error.response?.status === 401) {
         navigate("/overview");
       }
@@ -242,6 +266,7 @@ function Pods(){
                   <th>Node</th>
                   <th>IP</th>
                   <th>Containers</th>
+                  <th>Click to restart</th>
                 </tr>
               </thead>
               <tbody>
@@ -288,6 +313,13 @@ function Pods(){
                           {pod.readycontainer}/{pod.totalcontainer}
                         </span>
                       </td>
+                      <td className="restart-cell">
+  <button
+    className="restart-button"
+    onClick={() => restartHandler(pod.name, pod.namespace)}
+  >
+  </button>
+</td>
                     </tr>
                     {expandedPod === index && (
                       <tr key={`${index}-details`} className="pod-details-row">

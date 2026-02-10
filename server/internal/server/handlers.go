@@ -276,7 +276,7 @@ func (s *Server) IngressHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// func DelPodHandler(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) DelPodHandler(w http.ResponseWriter, r *http.Request) {
 // 	origin := r.Header.Get("Origin")
 // 	EnableCors(w, r, origin)
 
@@ -287,7 +287,8 @@ func (s *Server) IngressHandler(w http.ResponseWriter, r *http.Request) {
 
 // 	// get data
 // 	var res struct {
-// 		PodName string `json:"podname"`
+// 		PodName   string `json:"podname"`
+// 		NameSpace string `json:"namespace"`
 // 	}
 // 	err := json.NewDecoder(r.Body).Decode(&res)
 // 	if err != nil {
@@ -296,7 +297,7 @@ func (s *Server) IngressHandler(w http.ResponseWriter, r *http.Request) {
 // 	}
 
 // 	// delete
-// 	err = s.DeletePod(res.PodName)
+// 	err = s.DeletePod(res.NameSpace, res.PodName)
 // 	if err != nil {
 // 		http.Error(w, "couldnt delere"+err.Error(), http.StatusInternalServerError)
 // 		return
@@ -307,6 +308,39 @@ func (s *Server) IngressHandler(w http.ResponseWriter, r *http.Request) {
 // 		"msg": "yay",
 // 	})
 // }
+
+func (s *Server) RestartPodHandler(w http.ResponseWriter, r *http.Request) {
+	origin := r.Header.Get("Origin")
+	EnableCors(w, r, origin)
+
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var res struct {
+		PodName   string `json:"podname"`
+		NameSpace string `json:"namespace"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&res)
+	if err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	err = s.DeletePod(res.NameSpace, res.PodName)
+	if err != nil {
+		http.Error(w, "couldnt retstart"+err.Error(), http.StatusInternalServerError)
+		return
+
+	}
+
+	// send success
+	json.NewEncoder(w).Encode(map[string]string{
+		"msg": "yay",
+	})
+
+}
 
 func (s *Server) ConfigMapHandler(w http.ResponseWriter, r *http.Request) {
 	origin := r.Header.Get("Origin")
