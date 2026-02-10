@@ -14,7 +14,8 @@ function Secrets(){
   const [refreshing, setRefreshing] = useState(false);
   
   const navigate = useNavigate();
-  const x = process.env.REACT_APP_BACKEND_URL;
+  // const x = process.env.REACT_APP_BACKEND_URL;
+  const x = window.RUNTIME_CONFIG.BACKEND_URL;
 
   useEffect(() => {
     secretsHandler();

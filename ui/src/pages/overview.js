@@ -4,7 +4,8 @@ import axios from "axios";
 import "../overview.css";
 
 function Overview() {
-  const x = process.env.REACT_APP_BACKEND_URL;
+  // const x = process.env.REACT_APP_BACKEND_URL;
+  const x = window.RUNTIME_CONFIG.BACKEND_URL;
   const navigate = useNavigate();
   const [overview, setOverview] = useState(null);
   const [loading, setLoading] = useState(true); 
