@@ -197,13 +197,9 @@ type Overview struct {
 	Errors []error
 }
 
-func GetOverview(c *rest.Config) (*Overview, error) {
-	cs, err := NewClientSet(c)
-	if err != nil {
-		return nil, err
-	}
+func (s *Server) GetOverview() (*Overview, error) {
 
-	namespaces, err := getNamespaces(cs)
+	namespaces, err := s.getNamespaces()
 	if err != nil {
 		return nil, err
 	}
@@ -224,7 +220,7 @@ func GetOverview(c *rest.Config) (*Overview, error) {
 
 	go func() {
 		defer wg.Done()
-		nodes, err := getNodes(cs)
+		nodes, err := s.getNodes()
 		mux.Lock()
 		defer mux.Unlock()
 
@@ -238,7 +234,7 @@ func GetOverview(c *rest.Config) (*Overview, error) {
 	}()
 	go func() {
 		defer wg.Done()
-		pods, err := getPods(cs, namespaces)
+		pods, err := s.getPods(namespaces)
 		mux.Lock()
 		defer mux.Unlock()
 		if err != nil {
@@ -249,7 +245,7 @@ func GetOverview(c *rest.Config) (*Overview, error) {
 	}()
 	go func() {
 		defer wg.Done()
-		svc, err := getServices(cs, namespaces)
+		svc, err := s.getServices(namespaces)
 		mux.Lock()
 		defer mux.Unlock()
 
@@ -262,7 +258,7 @@ func GetOverview(c *rest.Config) (*Overview, error) {
 	}()
 	go func() {
 		defer wg.Done()
-		ing, err := getIngress(cs, namespaces)
+		ing, err := s.getIngress(namespaces)
 		mux.Lock()
 		defer mux.Unlock()
 		if err != nil {
@@ -273,7 +269,7 @@ func GetOverview(c *rest.Config) (*Overview, error) {
 	}()
 	go func() {
 		defer wg.Done()
-		sec, err := getSecrets(cs, namespaces)
+		sec, err := s.getSecrets(namespaces)
 		mux.Lock()
 		defer mux.Unlock()
 		if err != nil {
@@ -285,7 +281,7 @@ func GetOverview(c *rest.Config) (*Overview, error) {
 	}()
 	go func() {
 		defer wg.Done()
-		m, err := getConfigMaps(cs, namespaces)
+		m, err := s.getConfigMaps(namespaces)
 		mux.Lock()
 		defer mux.Unlock()
 		if err != nil {
@@ -315,18 +311,18 @@ func NewClientSet(c *rest.Config) (*kubernetes.Clientset, error) {
 
 }
 
-func getNamespaces(cs *kubernetes.Clientset) (*v1.NamespaceList, error) {
+func (s *Server) getNamespaces() (*v1.NamespaceList, error) {
 
-	namespaces, err := cs.CoreV1().Namespaces().List(context.Background(), metav1.ListOptions{})
+	namespaces, err := s.ClientSet.CoreV1().Namespaces().List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
 	return namespaces, nil
 }
 
-func getNodes(cs *kubernetes.Clientset) (*Nodes, error) {
+func (s *Server) getNodes() (*Nodes, error) {
 
-	nodes, err := cs.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
+	nodes, err := s.ClientSet.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -384,7 +380,7 @@ func getNodes(cs *kubernetes.Clientset) (*Nodes, error) {
 	return &Nodes{TotalNodes: len(nodes.Items), RunningNodes: runningNodes, Nodes: arr}, nil
 }
 
-func getPods(cs *kubernetes.Clientset, namespaces *v1.NamespaceList) (*Pods, error) {
+func (s *Server) getPods(namespaces *v1.NamespaceList) (*Pods, error) {
 
 	var arr []*PodsInfo
 	totalPods := make(map[string]int)
@@ -396,7 +392,7 @@ func getPods(cs *kubernetes.Clientset, namespaces *v1.NamespaceList) (*Pods, err
 		r := 0
 		l := 0
 
-		pods, err := cs.CoreV1().Pods(ns.Name).List(context.Background(), metav1.ListOptions{})
+		pods, err := s.ClientSet.CoreV1().Pods(ns.Name).List(context.Background(), metav1.ListOptions{})
 
 		if err != nil {
 			return nil, err
@@ -490,7 +486,7 @@ func getPods(cs *kubernetes.Clientset, namespaces *v1.NamespaceList) (*Pods, err
 	return &Pods{TotalPods: totalPods, RunningPods: runPods, PodsList: arr}, nil
 }
 
-func getServices(cs *kubernetes.Clientset, namespaces *v1.NamespaceList) (*Services, error) {
+func (s *Server) getServices(namespaces *v1.NamespaceList) (*Services, error) {
 
 	total := make(map[string]int)
 	// ser := make(map[string]*v1.ServiceList)
@@ -499,7 +495,7 @@ func getServices(cs *kubernetes.Clientset, namespaces *v1.NamespaceList) (*Servi
 
 		l := 0
 
-		svc, err := cs.CoreV1().Services(ns.Name).List(context.Background(), metav1.ListOptions{})
+		svc, err := s.ClientSet.CoreV1().Services(ns.Name).List(context.Background(), metav1.ListOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -545,14 +541,14 @@ func getServices(cs *kubernetes.Clientset, namespaces *v1.NamespaceList) (*Servi
 	return &Services{Totalservices: total, ServiceList: Svc}, nil
 }
 
-func getIngress(cs *kubernetes.Clientset, namespace *v1.NamespaceList) (*Ingress, error) {
+func (s *Server) getIngress(namespace *v1.NamespaceList) (*Ingress, error) {
 
 	total := make(map[string]int)
 	// Ing := make(map[string]*networkingv1.IngressList)
 	ing := make([]*IngressInfo, 0)
 	for _, ns := range namespace.Items {
 		length := 0
-		ingress, err := cs.NetworkingV1().Ingresses(ns.Name).List(context.Background(), metav1.ListOptions{})
+		ingress, err := s.ClientSet.NetworkingV1().Ingresses(ns.Name).List(context.Background(), metav1.ListOptions{})
 
 		if err != nil {
 			return nil, err
@@ -613,7 +609,7 @@ func getIngress(cs *kubernetes.Clientset, namespace *v1.NamespaceList) (*Ingress
 
 }
 
-func getSecrets(cs *kubernetes.Clientset, namespace *v1.NamespaceList) (*Secrets, error) {
+func (s *Server) getSecrets(namespace *v1.NamespaceList) (*Secrets, error) {
 
 	x := make(map[string]int)
 
@@ -622,7 +618,7 @@ func getSecrets(cs *kubernetes.Clientset, namespace *v1.NamespaceList) (*Secrets
 
 	for _, ns := range namespace.Items {
 		length := 0
-		sec, err := cs.CoreV1().Secrets(ns.Name).List(context.Background(), metav1.ListOptions{})
+		sec, err := s.ClientSet.CoreV1().Secrets(ns.Name).List(context.Background(), metav1.ListOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -654,7 +650,7 @@ func getSecrets(cs *kubernetes.Clientset, namespace *v1.NamespaceList) (*Secrets
 
 }
 
-func getConfigMaps(cs *kubernetes.Clientset, namespace *v1.NamespaceList) (*ConfigMaps, error) {
+func (s *Server) getConfigMaps(namespace *v1.NamespaceList) (*ConfigMaps, error) {
 
 	x := make(map[string]int)
 
@@ -662,7 +658,7 @@ func getConfigMaps(cs *kubernetes.Clientset, namespace *v1.NamespaceList) (*Conf
 	for _, ns := range namespace.Items {
 
 		l := 0
-		m, err := cs.CoreV1().ConfigMaps(ns.Name).List(context.Background(), metav1.ListOptions{})
+		m, err := s.ClientSet.CoreV1().ConfigMaps(ns.Name).List(context.Background(), metav1.ListOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -691,6 +687,6 @@ func getConfigMaps(cs *kubernetes.Clientset, namespace *v1.NamespaceList) (*Conf
 
 }
 
-func (s *Server) DeletePod(name string) error {
+// func (s *Server) DeletePod(name string) error {
 
-}
+// }

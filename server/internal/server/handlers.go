@@ -7,9 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/google/uuid"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -45,29 +43,29 @@ func (s *Server) RefreshHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := s.Store.Get(r, "k8s-config-session")
-	if err != nil {
-		http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
-		return
-	}
+	// session, err := s.Store.Get(r, "k8s-config-session")
+	// if err != nil {
+	// 	http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
 
-	auth, ok := session.Values["authenticated"].(bool)
-	if !ok || !auth {
-		http.Error(w, "not authenticated", http.StatusUnauthorized)
-		return
+	// auth, ok := session.Values["authenticated"].(bool)
+	// if !ok || !auth {
+	// 	http.Error(w, "not authenticated", http.StatusUnauthorized)
+	// 	return
 
-	}
+	// }
 
-	configID := session.Values["id"].(string)
-	restConfig := s.ConfigStore[configID]
+	// configID := session.Values["id"].(string)
+	// restConfig := s.ConfigStore[configID]
 
-	overview, err := GetOverview(restConfig)
+	overview, err := s.GetOverview()
 
 	if err != nil {
 		http.Error(w, "error getting whatever it is that u wanted "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	s.OverviewStore[configID] = overview
+	s.Overview = overview
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "yay",
 	})
@@ -84,19 +82,19 @@ func (s *Server) OverviewHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := s.Store.Get(r, "k8s-config-session")
-	if err != nil {
-		http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
-		return
-	}
+	// session, err := s.Store.Get(r, "k8s-config-session")
+	// if err != nil {
+	// 	http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
 
-	sid, ok := session.Values["id"].(string)
-	if !ok {
-		http.Error(w, "no session id", http.StatusUnauthorized)
-		return
-	}
+	// sid, ok := session.Values["id"].(string)
+	// if !ok {
+	// 	http.Error(w, "no session id", http.StatusUnauthorized)
+	// 	return
+	// }
 
-	overview := s.OverviewStore[sid]
+	overview := s.Overview
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"totalNodes":   overview.Nodes.TotalNodes,
@@ -161,7 +159,7 @@ func (s *Server) ConfigHandler(w http.ResponseWriter, r *http.Request) {
 
 	// test connection
 
-	cs, err := kubernetes.NewForConfig(c)
+	cs, err := NewClientSet(c)
 	if err != nil {
 		http.Error(w, "error creating client"+err.Error(), http.StatusInternalServerError)
 		return
@@ -173,23 +171,32 @@ func (s *Server) ConfigHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	configID := uuid.New().String()
-
-	// cartoon logic frfr
-	s.ConfigStore[configID] = c
-
-	session, _ := s.Store.Get(r, "k8s-config-session")
-	session.Values["id"] = configID
-
-	session.Values["authenticated"] = true
-	overview, err := GetOverview(c)
-	s.OverviewStore[configID] = overview
-
-	err = session.Save(r, w)
+	s.ClientSet = cs
+	s.RestConfig = c
+	overview, err := s.GetOverview()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+
 	}
+	s.Overview = overview
+	// configID := uuid.New().String()
+
+	// // cartoon logic frfr
+	// s.ConfigStore[configID] = c
+
+	// session, _ := s.Store.Get(r, "k8s-config-session")
+	// session.Values["id"] = configID
+
+	// session.Values["authenticated"] = true
+	// overview, err := GetOverview(c)
+	// s.OverviewStore[configID] = overview
+
+	// err = session.Save(r, w)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
 
 	w.WriteHeader(http.StatusCreated)
 
@@ -213,19 +220,19 @@ func (s *Server) PodsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := s.Store.Get(r, "k8s-config-session")
-	if err != nil {
-		http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
-		return
-	}
+	// session, err := s.Store.Get(r, "k8s-config-session")
+	// if err != nil {
+	// 	http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
 
-	sid, ok := session.Values["id"].(string)
-	if !ok {
-		http.Error(w, "no session id", http.StatusUnauthorized)
-		return
-	}
+	// sid, ok := session.Values["id"].(string)
+	// if !ok {
+	// 	http.Error(w, "no session id", http.StatusUnauthorized)
+	// 	return
+	// }
 
-	ov := s.OverviewStore[sid]
+	ov := s.Overview
 	pods := ov.Pods
 	ns_list := ov.NameSpace.NameSpaceList
 	pods.NamespaceList = ns_list
@@ -246,19 +253,19 @@ func (s *Server) IngressHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := s.Store.Get(r, "k8s-config-session")
-	if err != nil {
-		http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
-		return
-	}
+	// session, err := s.Store.Get(r, "k8s-config-session")
+	// if err != nil {
+	// 	http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
 
-	sid, ok := session.Values["id"].(string)
-	if !ok {
-		http.Error(w, "error getting session id ", http.StatusInternalServerError)
-		return
+	// sid, ok := session.Values["id"].(string)
+	// if !ok {
+	// 	http.Error(w, "error getting session id ", http.StatusInternalServerError)
+	// 	return
 
-	}
-	ov := s.OverviewStore[sid]
+	// }
+	ov := s.Overview
 	ingress := ov.Ingress
 	ns_list := ov.NameSpace.NameSpaceList
 	ingress.NameSpaceList = ns_list
@@ -269,37 +276,37 @@ func (s *Server) IngressHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func DelPodHandler(w http.ResponseWriter, r *http.Request) {
-	origin := r.Header.Get("Origin")
-	EnableCors(w, r, origin)
+// func DelPodHandler(w http.ResponseWriter, r *http.Request) {
+// 	origin := r.Header.Get("Origin")
+// 	EnableCors(w, r, origin)
 
-	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
+// 	if r.Method != http.MethodPost {
+// 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+// 		return
+// 	}
 
-	// get data
-	var res struct {
-		PodName string `json:"podname"`
-	}
-	err := json.NewDecoder(r.Body).Decode(&res)
-	if err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
-	}
+// 	// get data
+// 	var res struct {
+// 		PodName string `json:"podname"`
+// 	}
+// 	err := json.NewDecoder(r.Body).Decode(&res)
+// 	if err != nil {
+// 		http.Error(w, "Invalid request", http.StatusBadRequest)
+// 		return
+// 	}
 
-	// delete
-	err = s.DeletePod(res.PodName)
-	if err != nil {
-		http.Error(w, "couldnt delere"+err.Error(), http.StatusInternalServerError)
-		return
-	}
+// 	// delete
+// 	err = s.DeletePod(res.PodName)
+// 	if err != nil {
+// 		http.Error(w, "couldnt delere"+err.Error(), http.StatusInternalServerError)
+// 		return
+// 	}
 
-	// send success
-	json.NewEncoder(w).Encode(map[string]string{
-		"msg": "yay",
-	})
-}
+// 	// send success
+// 	json.NewEncoder(w).Encode(map[string]string{
+// 		"msg": "yay",
+// 	})
+// }
 
 func (s *Server) ConfigMapHandler(w http.ResponseWriter, r *http.Request) {
 	origin := r.Header.Get("Origin")
@@ -310,19 +317,19 @@ func (s *Server) ConfigMapHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := s.Store.Get(r, "k8s-config-session")
-	if err != nil {
-		http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
-		return
-	}
+	// session, err := s.Store.Get(r, "k8s-config-session")
+	// if err != nil {
+	// 	http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
 
-	sid, ok := session.Values["id"].(string)
-	if !ok {
-		http.Error(w, "error getting session id ", http.StatusInternalServerError)
-		return
+	// sid, ok := session.Values["id"].(string)
+	// if !ok {
+	// 	http.Error(w, "error getting session id ", http.StatusInternalServerError)
+	// 	return
 
-	}
-	ov := s.OverviewStore[sid]
+	// }
+	ov := s.Overview
 	m := ov.ConfigMaps
 	ns_list := ov.NameSpace.NameSpaceList
 	m.NameSpaceList = ns_list
@@ -343,20 +350,20 @@ func (s *Server) NodesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := s.Store.Get(r, "k8s-config-session")
-	if err != nil {
-		http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
-		return
-	}
+	// session, err := s.Store.Get(r, "k8s-config-session")
+	// if err != nil {
+	// 	http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
 
-	sid, ok := session.Values["id"].(string)
-	if !ok {
-		http.Error(w, "error getting session id ", http.StatusInternalServerError)
-		return
+	// sid, ok := session.Values["id"].(string)
+	// if !ok {
+	// 	http.Error(w, "error getting session id ", http.StatusInternalServerError)
+	// 	return
 
-	}
+	// }
 
-	nodes := s.OverviewStore[sid].Nodes
+	nodes := s.Overview.Nodes
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"nodes": nodes,
@@ -375,19 +382,19 @@ func (s *Server) SVCHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := s.Store.Get(r, "k8s-config-session")
-	if err != nil {
-		http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
-		return
-	}
+	// session, err := s.Store.Get(r, "k8s-config-session")
+	// if err != nil {
+	// 	http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
 
-	sid, ok := session.Values["id"].(string)
-	if !ok {
-		http.Error(w, "error getting session id ", http.StatusInternalServerError)
-		return
+	// sid, ok := session.Values["id"].(string)
+	// if !ok {
+	// 	http.Error(w, "error getting session id ", http.StatusInternalServerError)
+	// 	return
 
-	}
-	ov := s.OverviewStore[sid]
+	// }
+	ov := s.Overview
 	svc := ov.Services
 	ns_list := ov.NameSpace.NameSpaceList
 	svc.NameSpaceList = ns_list
@@ -409,20 +416,20 @@ func (s *Server) SecretsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := s.Store.Get(r, "k8s-config-session")
-	if err != nil {
-		http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
-		return
-	}
+	// session, err := s.Store.Get(r, "k8s-config-session")
+	// if err != nil {
+	// 	http.Error(w, "error getting session"+err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
 
-	sid, ok := session.Values["id"].(string)
-	if !ok {
-		http.Error(w, "error getting session id ", http.StatusInternalServerError)
-		return
+	// sid, ok := session.Values["id"].(string)
+	// if !ok {
+	// 	http.Error(w, "error getting session id ", http.StatusInternalServerError)
+	// 	return
 
-	}
+	// }
 
-	ov := s.OverviewStore[sid]
+	ov := s.Overview
 	secrets := ov.Secrets
 	ns_list := ov.NameSpace.NameSpaceList
 	secrets.NameSpaceList = ns_list
